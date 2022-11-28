@@ -9,8 +9,8 @@
  * Database structure.
  **/
 struct database_t {
-  std::vector<student_t> data; /** Students */
-  const char*            path; /** DB path */
+    std::vector<student_t> data; /** Students */
+    const char*            path; /** DB path */
 };
 
 // Nous utilisons un std::vector ici pour ne pas avoir à gérer le code
