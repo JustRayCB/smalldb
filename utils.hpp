@@ -2,10 +2,6 @@
 #define _UTILS_HPP
 
 
-struct Client{
-    const unsigned id;
-    const int clientSocket;
-};
 
 void signalHandler(int signum);
 
