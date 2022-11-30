@@ -28,7 +28,7 @@ void *handleConnection(void *pClient){
         std::cout <<"Server has received : " << msg << std::endl;
         
     }
-    std::cout << "The Client " << client.id << " has been disconnected" << std::endl;
+    std::cout << "The Client (" << client.id << ") has been disconnected" << std::endl;
     check(bytesRead, "recv error");
     close(client.clientSocket);
 
@@ -57,7 +57,7 @@ int main() {
         std::cout << "Waiting for connections ... " << std::endl;
         check(clientSocket = accept(serverSocket, (struct sockaddr *)&clientAddress, 
                     (socklen_t *)&addrlenf), "Accept failed");
-        std::cout << "Client connected" << std::endl;
+        std::cout << "Client (" << clientNb <<") connected" << std::endl;
         Client *pClient = new Client({clientNb, clientSocket});
         pthread_t thread;
         pthread_create(&thread, nullptr, handleConnection, pClient);
