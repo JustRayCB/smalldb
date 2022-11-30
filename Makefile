@@ -6,9 +6,8 @@ HEADERS = $(wildcard *.hpp */*.hpp)
 
 OBJ=utils.o
 
-.PHONY: main
-main: smalldb
 
+main: smalldb sdbsh
 #smalldb: smalldb.cpp ${OBJ}
 	#$(CXX) $(LDFLAGS) $^ -o $@ $(LOADLIBES) $(LDLIBS)
 
@@ -16,14 +15,19 @@ main: smalldb
 	#$(CXX) $(LDFLAGS) $^ -o $@ $(LOADLIBES) $(LDLIBS)
 
 
+sdbsh: sdbsh.cpp
+	$(CXX) -o sdbsh sdbsh.cpp $(CXXFLAGS) $(LDLIBS)
+
 
 smalldb: smalldb.cpp ${OBJ}
-	$(CXX) -o smalldb.cpp ${OBJ} $(CXXFLAGS) $(LDLIBS)
+	$(CXX) -o smalldb smalldb.cpp ${OBJ} $(CXXFLAGS) $(LDLIBS)
+
 
 
 %.o: %.cpp %.hpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $^
 
-.PHONY: clean
 clean:
+	-rm smalldb
+	-rm sdbsh
 	-rm *.o
