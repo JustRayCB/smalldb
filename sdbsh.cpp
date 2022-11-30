@@ -33,19 +33,11 @@ int main(){
     check(connect(client, (struct sockaddr *) &serv_addr, sizeof(serv_addr)), "Connection failed");
     
     std::string msg;
-    char toArray[BUFFSIZE];
 
     while (std::getline(std::cin, msg)){
       std::cout << "Client sending to server.." << std::endl;
       std::cout << "Client msg -> " << msg << std::endl;
-      send(client, msg.c_str(), BUFFSIZE, 0);
-      //if (msg.size() <BUFFSIZE) {
-        //strcpy(toArray, msg.c_str());
-        //std::cout << "To char -> " << toArray << std::endl;
-        //send(client, msg.c_str(), BUFFSIZE, 0);
-      //}else {
-        //std::cout << "Please enter a msg with less words" << std::endl;
-      //}
+      send(client, msg.c_str(), msg.size(), 0);
     }
     close(client);
     return 0;

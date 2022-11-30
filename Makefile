@@ -30,4 +30,5 @@ smalldb: smalldb.cpp ${OBJ}
 clean:
 	-rm smalldb
 	-rm sdbsh
+	-rm *.hpp.gch
 	-rm *.o
