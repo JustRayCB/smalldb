@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <signal.h>
+#include "utils.hpp"
 
 #define PORT (28772)
 #define SOCKETERROR (-1)
@@ -15,47 +16,21 @@
 #define BUFFSIZE (200)
 
 
-void signalHandler(int signum) {
-   if (signum == SIGINT) { //^C
-                           //Save and end programm
-       std::cout << "Handling SIGINT signal ... "<< std::endl;
-     fclose(stdin); // Close stdin to get out of the waiting for input
-    }
-}
 
-
-int check(int exp, const char *msg){
-    if (exp == SOCKETERROR) {
-        perror(msg);
-        exit(EXIT_FAILURE);
-    }
-    return exp;
-}
-
-void *handleConnection(void *pClientSocket){
-    int client = *static_cast<int *>(pClientSocket);
-    delete static_cast<int *>(pClientSocket);
+void *handleConnection(void *pClient){
+    Client client = *static_cast<Client *>(pClient);
+    delete static_cast<Client *>(pClient);
 
     char msg[BUFFSIZE];
     size_t bytesRead;
 
-    //std::cout << "hehee" << std::endl;
-    //std::cout <<(bytesRead = recv(client, msg, BUFFSIZE, 0)) << std::endl;
-    while ((bytesRead = recv(client, msg, BUFFSIZE, 0)) > 0) {
+    while ((bytesRead = recv(client.clientSocket, msg, BUFFSIZE, 0)) > 0) {
         std::cout <<"Server has received : " << msg << std::endl;
-        std::cout << "last : " << msg[BUFFSIZE -1] << std::endl;
-        std::cout << bytesRead << std::endl;
-        if (bytesRead > BUFFSIZE and msg[BUFFSIZE-1] != '\n') {
-            std::cout << "here" << std::endl;
-            bytesRead = -1;
-            //check(bytesRead, "Size too much");
-            break;
-        }
         
     }
-    std::cout << "hehee" << std::endl;
+    std::cout << "The Client " << client.id << " has been disconnected" << std::endl;
     check(bytesRead, "recv error");
-    close(client);
+    close(client.clientSocket);
 
 
     return nullptr;
@@ -66,6 +41,7 @@ int main() {
 
     int serverSocket = check(socket(AF_INET, SOCK_STREAM, 0), "Serv: failed to create socket");
     int clientSocket =1;
+    unsigned clientNb = 1;
     struct sockaddr_in address, clientAddress;
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
@@ -82,9 +58,10 @@ int main() {
         check(clientSocket = accept(serverSocket, (struct sockaddr *)&clientAddress, 
                     (socklen_t *)&addrlenf), "Accept failed");
         std::cout << "Client connected" << std::endl;
-        int *pClient = new int(clientSocket);
+        Client *pClient = new Client({clientNb, clientSocket});
         pthread_t thread;
         pthread_create(&thread, nullptr, handleConnection, pClient);
+        clientNb++;
     
     }
     std::cout << "The server is closing" << std::endl;
