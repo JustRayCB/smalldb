@@ -32,8 +32,8 @@ void db_load(database_t *db, const char *path) {
     if (info.st_size < 0) {
         err(FILE_ERROR, "Unable to stat %s (loading DB): get a negative size", path);
     }
-    size_t size = static_cast<size_t>(info.st_size) / sizeof(student_t);
-    if (info.st_size != static_cast<ssize_t>(sizeof(student_t) * size)) {
+    size_t size = static_cast<size_t>(info.st_size) / db->data.size();
+    if (info.st_size != static_cast<ssize_t>((db->data.size() * size))) {
         err(FILE_ERROR, "Corrupted DB file");
     }
 
@@ -79,8 +79,7 @@ void db_add(database_t *db, student_t s) { db->data.push_back(s); }
 
 size_t db_delete(database_t *db, student_t *s) {
     size_t deleted = 0;
-    for (std::vector<student_t>::iterator it = db->data.begin();
-         it != db->data.end();) {
+    for (std::vector<student_t>::iterator it = db->data.begin();it != db->data.end();) {
         if (student_equals(&*it, s)) {
             it = db->data.erase(it);
             ++deleted;

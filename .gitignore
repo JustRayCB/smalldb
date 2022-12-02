@@ -1,0 +1,6 @@
+*.gch
+*.o
+sdbsh
+smalldb
+sdbsh.dSYM
+smalldb.dSYM

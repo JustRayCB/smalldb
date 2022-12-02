@@ -11,8 +11,8 @@ void execute_select(FILE* fout, database_t* const db, const char* const field,
         query_fail_bad_filter(fout, field, value);
         return;
     }
-    for (const student_t& s : db->data) {
-        if (predicate(s)) {
+    for (std::vector<student_t>::iterator it = db->data.begin();it != db->data.end();) {
+        if (predicate(*it)) {
         }
     }
 }
