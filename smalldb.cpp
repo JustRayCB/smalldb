@@ -1,4 +1,6 @@
 #include <cstddef>
+#include <cstring>
+#include <string>
 #include <sys/select.h>
 #include <vector>
 #include <cstdio>
@@ -14,6 +16,7 @@
 #include "student.hpp"
 #include "utils.hpp"
 #include "db.hpp"
+#include "query.hpp"
 
 #define PORT (28772)
 #define SOCKETERROR (-1)
@@ -22,44 +25,9 @@
 
 
 
-void *handleConnection(void *pClient){
-    Client client = *static_cast<Client *>(pClient);
-    delete static_cast<Client *>(pClient);
-
-    char msg[BUFFSIZE];
-    size_t bytesRead;
-
-    while ((bytesRead = recv(client.socket, msg, BUFFSIZE, 0)) > 0) {
-        std::cout <<"Server has received : " << msg << std::endl;
-        // check message
-        // if (msg.substr(0, 6) == "select"{
-        // call select
-        //}
-        // else  if (msg.substr(0, 6) == "insert"{
-        // call insert
-        //}
-        // else if (msg.substr(0, 6) == "update"{
-        // call update
-        //}
-        // else if (msg.substr(0, 6) == "delete"{
-        // call delete
-        //}
-        // else{
-        // std::cout << "Unknown method" << std::endl;
-        //}
-        
-    }
-    std::cout << "The Client (" << client.socket << ") has been disconnected" << std::endl;
-    check(bytesRead, "recv error");
-    close(client.socket);
-
-    pthread_exit(nullptr);
-
-    return nullptr;
-}
 
 int main() {
-    std::cout << "Hello, I'm the server" << PORT <<  std::endl;
+    std::cout << "Hello, I'm the server " << PORT <<  std::endl;
 
     std::cout << "Loading the Db" << std::endl;
     database_t *db = new database_t();
