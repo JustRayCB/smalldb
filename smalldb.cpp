@@ -31,8 +31,7 @@ int main() {
 
     std::cout << "Loading the Db" << std::endl;
     database_t *db = new database_t();
-    db->path = "students.bin";
-    db_load(db, "students.bin");
+    db_load(db, "/home/cbr/Unif2/os/projet2/students.bin");
 
 
     int serverSocket = check(socket(AF_INET, SOCK_STREAM, 0), "Serv: failed to create socket");

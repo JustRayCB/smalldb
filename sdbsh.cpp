@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <arpa/inet.h>
+#include <netinet/in.h>
 #include <string>
 #include <string.h>
 #include <unistd.h>
@@ -33,16 +34,27 @@ int main(){
     check(connect(client, (struct sockaddr *) &serv_addr, sizeof(serv_addr)), "Connection failed");
     
     std::string msg;
-    char results[BUFFSIZE];
+    int valueSize;
 
     while (std::getline(std::cin, msg)){
-      std::cout << "Client sending to server.." << std::endl;
-      std::cout << "Client msg -> " << msg << std::endl;
-      send(client, msg.c_str(), msg.size(), 0);
-      for (int idx=0; idx<2; idx++) {
-          recv(client, results, BUFFSIZE, 0);
-          std::cout << "client recv :  " << results << std::endl;
-      }
+        std::cout << "Client sending to server.." << std::endl;
+        std::cout << "Client msg -> " << msg << std::endl;
+        send(client, msg.c_str(), msg.size(), 0);
+        recv(client, &valueSize, sizeof(valueSize), 0);
+        valueSize = ntohl(valueSize);
+        char *results = new char[valueSize+1];
+        results[valueSize] = '\0';
+        //char results[84];
+        recv(client, results, valueSize, 0);
+        //std::string test(results);
+        //std::cout <<  test;
+        //for (auto idx=0; idx < valueSize; idx++) {
+            //std::cout << "idx : " << idx << " : " << results[idx] <<std::endl;
+        //}
+        std::cout << results;
+        //std::cout << results[83] << std::endl;
+        //std::cout << results[84] << std::endl;
+        delete [] results;
       
     }
     close(client);

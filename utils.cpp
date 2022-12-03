@@ -1,8 +1,12 @@
+#include <cstdint>
 #include <iostream>
 #include <signal.h>
+#include <string>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <vector>
+#include <netinet/in.h>
+#include <numeric>
 
 #include "utils.hpp"
 #include "query.hpp"
@@ -10,13 +14,30 @@
 #define SOCKETERROR (-1)
 #define BUFFSIZE (200)
 
-void printResult(Client &client, std::vector<std::string> results){
+void printResult(const Client &client, const std::vector<std::string> results){
         //std::string size = std::to_string(results.size()-1);
         //send(client.socket, size.c_str(), size.size(), 0);
+        int valueSize;
+        int convertedSize;
+        //std::string res = std::accumulate(results.begin(), results.end(), std::string{});
+        std::string res;
         for (auto &value : results) {
-            //send(client.socket, value.c_str(), value.size(), 0);
-            std::cout << value << std::endl;
+            res +=value;
+            std::cout << value;
         }
+        valueSize = res.length();
+        convertedSize = htonl(valueSize);
+        std::cout << valueSize << std::endl;
+        send(client.socket, &convertedSize, sizeof(convertedSize), 0);
+        send(client.socket, res.c_str(), res.size(), 0);
+        //for (auto &value : results) {
+            ////send(client.socket, value.c_str(), value.size(), 0);
+            //std::cout << value;
+            //valueSize = value.length();
+            //convertedSize = htonl(valueSize);
+            //std::cout << valueSize << std::endl;
+            //send(client.socket, &convertedSize, sizeof(convertedSize), 0);
+        //}
 
 }
 
