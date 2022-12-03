@@ -4,7 +4,7 @@ LDLIBS+=-lpthread
 SOURCES = $(wildcard *.cpp */*.cpp)
 HEADERS = $(wildcard *.hpp */*.hpp)
 
-OBJ=utils.o db.o student.o
+OBJ=utils.o db.o student.o query.o parsing.o
 
 
 main: smalldb sdbsh

@@ -39,6 +39,15 @@ void student_to_str(char *buffer, const student_t *s, size_t buffer_size) {
             s->id, s->fname, s->lname, s->section, day, month + 1, year + 1900);
 }
 
+
+std::string student_to_str(const student_t &s){
+    std::string myBuffer;
+    myBuffer = std::to_string(s.id) + ": " + std::string(s.fname) + " " + std::string(s.lname) + " in section " + std::string(s.section)
+    + ", born on the " + std::to_string(s.birthdate.tm_mday) + "/" + std::to_string(s.birthdate.tm_mon + 1) + "/"
+    + std::to_string(s.birthdate.tm_year+1900)+'\n';
+    return myBuffer;
+}
+
 bool student_equals(const student_t *s1, const student_t *s2) {
   return s1->id == s2->id && strcmp(s1->fname, s2->fname) == 0 &&
          strcmp(s1->lname, s2->lname) == 0 &&

@@ -33,11 +33,17 @@ int main(){
     check(connect(client, (struct sockaddr *) &serv_addr, sizeof(serv_addr)), "Connection failed");
     
     std::string msg;
+    char results[BUFFSIZE];
 
     while (std::getline(std::cin, msg)){
       std::cout << "Client sending to server.." << std::endl;
       std::cout << "Client msg -> " << msg << std::endl;
       send(client, msg.c_str(), msg.size(), 0);
+      for (int idx=0; idx<2; idx++) {
+          recv(client, results, BUFFSIZE, 0);
+          std::cout << "client recv :  " << results << std::endl;
+      }
+      
     }
     close(client);
     return 0;
