@@ -27,9 +27,9 @@ void printResult(const Client &client, const std::vector<std::string> results){
         }
         valueSize = res.length();
         convertedSize = htonl(valueSize);
-        std::cout << valueSize << std::endl;
+        std::cout << "size : " << valueSize << std::endl;
         send(client.socket, &convertedSize, sizeof(convertedSize), 0);
-        send(client.socket, res.c_str(), res.size(), 0);
+        int ret  = send(client.socket, res.c_str(), res.size(), 0);
         //for (auto &value : results) {
             ////send(client.socket, value.c_str(), value.size(), 0);
             //std::cout << value;
@@ -38,6 +38,7 @@ void printResult(const Client &client, const std::vector<std::string> results){
             //std::cout << valueSize << std::endl;
             //send(client.socket, &convertedSize, sizeof(convertedSize), 0);
         //}
+        std::cout << "The bytes I sent : " << ret << std::endl;
 
 }
 

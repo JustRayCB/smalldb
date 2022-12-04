@@ -42,10 +42,11 @@ int main(){
         send(client, msg.c_str(), msg.size(), 0);
         recv(client, &valueSize, sizeof(valueSize), 0);
         valueSize = ntohl(valueSize);
+        std::cout << "The size I received : " << valueSize << std::endl;
         char *results = new char[valueSize+1];
         results[valueSize] = '\0';
         //char results[84];
-        recv(client, results, valueSize, 0);
+        int ret = recv(client, results, valueSize, 0);
         //std::string test(results);
         //std::cout <<  test;
         //for (auto idx=0; idx < valueSize; idx++) {
@@ -54,6 +55,7 @@ int main(){
         std::cout << results;
         //std::cout << results[83] << std::endl;
         //std::cout << results[84] << std::endl;
+        std::cout << "The bytes I read : " << ret << std::endl;
         delete [] results;
       
     }
