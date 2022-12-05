@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <signal.h>
@@ -28,7 +29,23 @@ void printResult(const Client &client, const std::string *results){
         convertedSize = htonl(valueSize);
         std::cout << "size : " << valueSize << std::endl;
         send(client.socket, &convertedSize, sizeof(convertedSize), 0);
-        int ret  = send(client.socket, results->c_str(), results->size(), 0);
+        // int ret  = send(client.socket, results->c_str(), results->size(), 0);
+        //
+        //
+        const char *ptr = results->data();
+        std::size_t dataSize = results->size();
+        int bytesSent;
+        while (dataSize > 0) {
+            bytesSent = send(client.socket, ptr, dataSize, 0);
+            std::cout << "The bytes I sent : " << bytesSent << std::endl;
+            if (bytesSent == SOCKETERROR) {
+                std::cout << "Error sending" << std::endl;
+                break;
+            }
+            ptr += bytesSent;
+            dataSize -= bytesSent;
+            std::cout << "Continuing" << std::endl;
+        }
         std::cout << "here" << std::endl;
         //for (auto &value : results) {
             ////send(client.socket, value.c_str(), value.size(), 0);
@@ -38,7 +55,7 @@ void printResult(const Client &client, const std::string *results){
             //std::cout << valueSize << std::endl;
             //send(client.socket, &convertedSize, sizeof(convertedSize), 0);
         //}
-        std::cout << "The bytes I sent : " << ret << std::endl;
+        //std::cout << "The bytes I sent : " << ret << std::endl;
         delete results;
 
         std::cout << "memory freed" << std::endl;
