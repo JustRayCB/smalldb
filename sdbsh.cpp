@@ -39,6 +39,7 @@ int main(){
     while (std::getline(std::cin, msg)){
         std::cout << "Client sending to server.." << std::endl;
         std::cout << "Client msg -> " << msg << std::endl;
+        msg += '\0';
         send(client, msg.c_str(), msg.size(), 0);
         recv(client, &valueSize, sizeof(valueSize), 0);
         valueSize = ntohl(valueSize);
@@ -46,13 +47,21 @@ int main(){
         char *results = new char[valueSize+1];
         results[valueSize] = '\0';
         //char results[84];
-        int ret = recv(client, results, valueSize, 0);
+        std::cout <<"Waiting .." << std::endl;
+        int ret=0;
+        do {
+            ret += recv(client, results, valueSize, 0);
+            std::cout << "Bytes received : " << ret << std::endl;
+            std::cout << results << std::endl;
+            std::cout << "I juste read -> "  << ret << std::endl;
+            sleep(2);
+        
+        }while (ret != valueSize);
         //std::string test(results);
         //std::cout <<  test;
         //for (auto idx=0; idx < valueSize; idx++) {
             //std::cout << "idx : " << idx << " : " << results[idx] <<std::endl;
         //}
-        std::cout << results;
         //std::cout << results[83] << std::endl;
         //std::cout << results[84] << std::endl;
         std::cout << "The bytes I read : " << ret << std::endl;

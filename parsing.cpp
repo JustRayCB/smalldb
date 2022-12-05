@@ -136,7 +136,7 @@ bool parse_selectors(string &query, string &field, string &value){
     return true;
 } 
 
-bool parse_birthdate(string &query, int &day, int &mon, int &year){
+bool parse_birthdate(string query, int &day, int &mon, int &year){
     stringstream X(query);
 
     string token;

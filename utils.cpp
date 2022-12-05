@@ -14,22 +14,22 @@
 #define SOCKETERROR (-1)
 #define BUFFSIZE (200)
 
-void printResult(const Client &client, const std::vector<std::string> results){
+void printResult(const Client &client, const std::string *results){
         //std::string size = std::to_string(results.size()-1);
         //send(client.socket, size.c_str(), size.size(), 0);
         int valueSize;
         int convertedSize;
         //std::string res = std::accumulate(results.begin(), results.end(), std::string{});
-        std::string res;
-        for (auto &value : results) {
-            res +=value;
-            std::cout << value;
-        }
-        valueSize = res.length();
+        //for (auto &value : results) {
+            //res +=value;
+            //std::cout << value;
+        //}
+        valueSize = results->length();
         convertedSize = htonl(valueSize);
         std::cout << "size : " << valueSize << std::endl;
         send(client.socket, &convertedSize, sizeof(convertedSize), 0);
-        int ret  = send(client.socket, res.c_str(), res.size(), 0);
+        int ret  = send(client.socket, results->c_str(), results->size(), 0);
+        std::cout << "here" << std::endl;
         //for (auto &value : results) {
             ////send(client.socket, value.c_str(), value.size(), 0);
             //std::cout << value;
@@ -39,6 +39,9 @@ void printResult(const Client &client, const std::vector<std::string> results){
             //send(client.socket, &convertedSize, sizeof(convertedSize), 0);
         //}
         std::cout << "The bytes I sent : " << ret << std::endl;
+        delete results;
+
+        std::cout << "memory freed" << std::endl;
 
 }
 
@@ -49,7 +52,7 @@ void *handleConnection(void *pClient){
     char msg[BUFFSIZE];
     std::string tmp;
     size_t bytesRead;
-    std::vector<std::string> results;
+    std::string *results = nullptr;
 
     while ((bytesRead = recv(client.socket, msg, BUFFSIZE, 0)) > 0) {
         std::cout <<"Server has received : " << msg << std::endl;

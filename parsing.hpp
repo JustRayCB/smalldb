@@ -54,6 +54,6 @@ bool parse_selectors(std::string &query, std::string &field, std::string &value)
  *
  * @return If the parsing was successful, false otherwise
  */
-bool parse_birthdate(std::string &query, int &day, int &mon, int &year);
+bool parse_birthdate(std::string query, int &day, int &mon, int &year);
 
 #endif
