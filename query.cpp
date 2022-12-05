@@ -69,7 +69,8 @@ bool isSearchedStudent(const std::string &field, const std::string &value, const
     return false;
 }
 
-std::tuple<bool, int> findStudent(database_t *database, std::string &field, std::string &value, std::string &results,
+std::tuple<bool, int> findStudent(database_t *database, std::string &field, std::string &value, 
+        std::vector<std::string> &results,
         const std::string &fieldToUpdate, const std::string &updateValue){
     bool correctField = false;
     bool isUpdate = false;
@@ -94,8 +95,8 @@ std::tuple<bool, int> findStudent(database_t *database, std::string &field, std:
             if (isUpdate) {
                 updateStudent(student, fieldToUpdate, updateValue);
             }
-            //results.push_back(student_to_str(student));
-            results+= student_to_str(student);
+            results.push_back(student_to_str(student));
+            //results+= student_to_str(student);
             //if (isDelete) {
                 //deleteStudent(student);
             //}
@@ -107,72 +108,73 @@ std::tuple<bool, int> findStudent(database_t *database, std::string &field, std:
     return {true, studentFound};
 }
 
-std::string *select(database_t *database, std::string query){
-    std::string *results = new std::string();
+std::vector<std::string> select(database_t *database, std::string query){
+    //std::string *results = new std::string();
+    std::vector<std::string> results;
     std::string field, value;
 
     if ( not parse_selectors(query, field, value)){
-        *results +=  "Problem with the query select \n"
-                    "Please enter the arguments correctly \n";
+        //*results +=  "Problem with the query select \n"
+                    //"Please enter the arguments correctly \n";
         return results;
     }
     
-    std::tuple<bool, int> ret = findStudent(database, field, value, *results);
+    std::tuple<bool, int> ret = findStudent(database, field, value, results);
     if (not std::get<0>(ret)) {
-        *results += "Problem with the query select \n"
-                    "There is a problem that was not suppose to happened\n";
+        //*results += "Problem with the query select \n"
+                    //"There is a problem that was not suppose to happened\n";
         return results;
-    }
-    *results += std::to_string(std::get<1>(ret)) +" student(s) selected" + '\n';
-    //results.push_back(std::to_string(results.size())+" student(s) selected" + '\n');
-    return results;
-}
-
-std::string *update(database_t *database, std::string query){
-    std::string *results = new std::string();
-    std::string fieldFilter, valueFilter, fieldToUpdate, updateValue;
-
-    if (not parse_update(query, fieldFilter, valueFilter, fieldToUpdate, updateValue)) {
-        *results +=  "Problem with the query update \n"
-                    "Please enter the arguments correctly \n";
-        return results;
-    }
-    
-    std::tuple<bool, int> ret = findStudent(database, fieldFilter, valueFilter, *results, fieldToUpdate, updateValue);
-    if (not std::get<0>(ret)) {
-        *results += "Problem with the query update \n"
-                    "There is a problem that was not suppose to happened\n";
-        return results;
-    }
-
-    *results += std::to_string(std::get<1>(ret)) +" student(s) updated" + '\n';
-    
-    return results;
-}
-
-std::string *insert(database_t *database, std::string query){
-    std::string *results = new std::string();
-    std::string fname, lname, id, section, birthdate;
-    if (not parse_insert(query, fname, lname, id, section, birthdate)) {
-        *results +=  "Problem with the query update \n"
-                    "Please enter the arguments correctly \n";
-        return results;
-    }
-    student_t student;
-    updateStudent(student, "fname", fname);
-    updateStudent(student, "lname", lname);
-    updateStudent(student, "id", id);
-    updateStudent(student, "section", section);
-    updateStudent(student, "birthdate", birthdate);
-    for (auto &currentStudent : database->data) {
-        if (currentStudent.id == student.id) {
-            *results += "Error id is already in the database\n";
-            return results;
-        }
     }
     //*results += std::to_string(std::get<1>(ret)) +" student(s) selected" + '\n';
-    *results += student_to_str(student);
-    db_add(database, student);
+    results.push_back(std::to_string(results.size())+" student(s) selected" + '\n');
     return results;
-
 }
+
+//std::string *update(database_t *database, std::string query){
+    //std::string *results = new std::string();
+    //std::string fieldFilter, valueFilter, fieldToUpdate, updateValue;
+
+    //if (not parse_update(query, fieldFilter, valueFilter, fieldToUpdate, updateValue)) {
+        //*results +=  "Problem with the query update \n"
+                    //"Please enter the arguments correctly \n";
+        //return results;
+    //}
+    
+    //std::tuple<bool, int> ret = findStudent(database, fieldFilter, valueFilter, *results, fieldToUpdate, updateValue);
+    //if (not std::get<0>(ret)) {
+        //*results += "Problem with the query update \n"
+                    //"There is a problem that was not suppose to happened\n";
+        //return results;
+    //}
+
+    //*results += std::to_string(std::get<1>(ret)) +" student(s) updated" + '\n';
+    
+    //return results;
+//}
+
+//std::string *insert(database_t *database, std::string query){
+    //std::string *results = new std::string();
+    //std::string fname, lname, id, section, birthdate;
+    //if (not parse_insert(query, fname, lname, id, section, birthdate)) {
+        //*results +=  "Problem with the query update \n"
+                    //"Please enter the arguments correctly \n";
+        //return results;
+    //}
+    //student_t student;
+    //updateStudent(student, "fname", fname);
+    //updateStudent(student, "lname", lname);
+    //updateStudent(student, "id", id);
+    //updateStudent(student, "section", section);
+    //updateStudent(student, "birthdate", birthdate);
+    //for (auto &currentStudent : database->data) {
+        //if (currentStudent.id == student.id) {
+            //*results += "Error id is already in the database\n";
+            //return results;
+        //}
+    //}
+    ///[>results += std::to_string(std::get<1>(ret)) +" student(s) selected" + '\n';
+    //*results += student_to_str(student);
+    //db_add(database, student);
+    //return results;
+
+//}

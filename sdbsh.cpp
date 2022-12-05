@@ -44,19 +44,32 @@ int main(){
         recv(client, &valueSize, sizeof(valueSize), 0);
         valueSize = ntohl(valueSize);
         std::cout << "The size I received : " << valueSize << std::endl;
-        char *results = new char[valueSize+1];
-        results[valueSize] = '\0';
+        //char *results = new char[valueSize+1];
+        //results[valueSize] = '\0';
         //char results[84];
         std::cout <<"Waiting .." << std::endl;
         int ret=0;
-        do {
-            ret += recv(client, results, valueSize, 0);
-            std::cout << "Bytes received : " << ret << std::endl;
-            std::cout << results << std::endl;
-            std::cout << "I juste read -> "  << ret << std::endl;
-            sleep(2);
+        for (int idx=0; idx < valueSize; idx++) {
+            int size;
+            recv(client, &size, sizeof(size), 0);
+            size = ntohl(size);
+            //std::cout << "I received the size for value : " << size << std::endl;
+            char *results = new char[size];
+            ret += recv(client, results, size, 0);
+            //std::cout << "The bytes I read : " << ret << std::endl;
+            std::cout << results;
+            delete [] results;
+
+        }
+        //do {
+            //recv(client, results, valueSize, 0);
+            //std::cout << "Bytes received : " << ret << std::endl;
+            //std::cout << results << std::endl;
+            //std::cout << "I juste read -> "  << ret << std::endl;
+            //sleep(2);
+            //ret++;
         
-        }while (ret != valueSize);
+        //}while (ret <= valueSize);
         //std::string test(results);
         //std::cout <<  test;
         //for (auto idx=0; idx < valueSize; idx++) {
@@ -65,7 +78,7 @@ int main(){
         //std::cout << results[83] << std::endl;
         //std::cout << results[84] << std::endl;
         std::cout << "The bytes I read : " << ret << std::endl;
-        delete [] results;
+        //delete [] results;
       
     }
     close(client);
