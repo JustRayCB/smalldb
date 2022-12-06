@@ -1,10 +1,10 @@
 
--Faire le MAKEFILE -H
--Mettre les classe Select ... ->Hérité de Query -> cas général -R
--Querry.cpp/hpp modifier pour que ca fonctionne avec les vector(database_t) -A
--Parsing.cpp/hpp voir si faut modifier des trucs -A
+-Faire le MAKEFILE -H DONE
+-Mettre les classe Select ... ->Hérité de Query -> cas général -R DONE
+-Querry.cpp/hpp modifier pour que ca fonctionne avec les vector(database_t) -A DONE
+-Parsing.cpp/hpp voir si faut modifier des trucs -A DONE
 -Mettre les mutex/semaphore aux bons endroit (voir Exemple pdf)
--Print correctement chez les clients ce qui est demandé au retour des fonctions (voir pdf)
+-Print correctement chez les clients ce qui est demandé au retour des fonctions (voir pdf) DONE
 -Monitoring client -H pas tt de suite
 -Gérer les signaux pour les threads/main -H
 -Gestion des erreurs ? -H
