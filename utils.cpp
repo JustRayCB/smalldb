@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <signal.h>
@@ -14,31 +15,25 @@
 #define SOCKETERROR (-1)
 #define BUFFSIZE (200)
 
-void printResult(const Client &client, const std::vector<std::string> results){
-        //std::string size = std::to_string(results.size()-1);
-        //send(client.socket, size.c_str(), size.size(), 0);
+void printResult(const Client &client, std::vector<std::string> &results){
         int valueSize;
         int convertedSize;
-        //std::string res = std::accumulate(results.begin(), results.end(), std::string{});
-        std::string res;
-        for (auto &value : results) {
-            res +=value;
-            std::cout << value;
-        }
-        valueSize = res.length();
+        valueSize = results.size();
         convertedSize = htonl(valueSize);
-        std::cout << valueSize << std::endl;
+        //std::cout << "size : " << valueSize << std::endl;
         send(client.socket, &convertedSize, sizeof(convertedSize), 0);
-        send(client.socket, res.c_str(), res.size(), 0);
-        //for (auto &value : results) {
-            ////send(client.socket, value.c_str(), value.size(), 0);
-            //std::cout << value;
-            //valueSize = value.length();
-            //convertedSize = htonl(valueSize);
-            //std::cout << valueSize << std::endl;
-            //send(client.socket, &convertedSize, sizeof(convertedSize), 0);
-        //}
-
+        size_t totalSize = 0;
+        for (auto &value : results) {
+            std::cout << value;
+            value += '\0';
+            valueSize = value.length();
+            convertedSize = htonl(valueSize);
+            //std::cout << "size : " << valueSize << std::endl;
+            send(client.socket, &convertedSize, sizeof(convertedSize), 0);
+            send(client.socket, value.data(), valueSize, 0);
+            totalSize += valueSize;
+        }
+        //std::cout << "The bytes I sent : " << totalSize << std::endl;
 }
 
 void *handleConnection(void *pClient){
@@ -57,18 +52,18 @@ void *handleConnection(void *pClient){
         if (tmp.substr(0, 6) == "select"){
             results = select(client.db, tmp.substr(7, tmp.length()));
         }
-        // else  if (msg.substr(0, 6) == "insert"{
-        // call insert
-        //}
-        // else if (msg.substr(0, 6) == "update"{
-        // call update
-        //}
-        // else if (msg.substr(0, 6) == "delete"{
-        // call delete
-        //}
-        // else{
-        // std::cout << "Unknown method" << std::endl;
-        //}
+        else  if (tmp.substr(0, 6) == "insert"){
+            results = insert(client.db, tmp.substr(7, tmp.length()));
+        }
+        else if (tmp.substr(0, 6) == "update"){
+            results = update(client.db, tmp.substr(7, tmp.length()));
+        }
+        else if (tmp.substr(0, 6) == "delete"){
+            results = deletion(client.db, tmp.substr(7, tmp.length()));
+        }
+        else{
+         std::cout << "Unknown method" << std::endl;
+        }
         printResult(client, results);
         memset(msg, 0, BUFFSIZE);
         
@@ -85,8 +80,8 @@ void *handleConnection(void *pClient){
 void signalHandler(int signum) {
    if (signum == SIGINT) { //^C
                            //Save and end programm
-        //std::cout << "Handling SIGINT signal ... "<< std::endl;
-        //fclose(stdin); // Close stdin to get out of the waiting for input
+        std::cout << "Handling SIGINT signal ... "<< std::endl;
+        fclose(stdin); // Close stdin to get out of the waiting for input
     }
 }
 
