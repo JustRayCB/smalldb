@@ -10,6 +10,12 @@
 #include "parsing.hpp"
 #include "student.hpp"
 
+std::mutex new_acces;
+std::mutex write_acces;
+std::mutex reader_registration;
+
+int reader_c = 0 ;
+
 
 void updateStudent(student_t &student, const std::string &fieldToUpdate, const std::string &updateValue){
   if (fieldToUpdate == "id") {
@@ -158,8 +164,21 @@ std::vector<std::string> select(database_t *database, std::string query){
                     "Please enter the arguments correctly \n");
         return results;
     }
-    
+    new_acces.lock();
+    reader_registration.lock();
+    if (reader_c == 0){
+        write_acces.lock();
+    }
+    reader_c ++;
+    new_acces.unlock();
+    reader_registration.unlock();
     bool ret = findStudent(database, field, value, results);
+    reader_registration.lock();
+    reader_c --;
+    if (reader_c == 0){
+        write_acces.unlock();
+    }
+    reader_registration.unlock();
     if (not ret) {
         results.push_back("Problem with the query select \n"
                     "There is a problem that was not suppose to happened\n");
@@ -178,8 +197,11 @@ std::vector<std::string> update(database_t *database, std::string query){
                     "Please enter the arguments correctly \n");
         return results;
     }
-    
+    new_acces.lock();
+    write_acces.lock();
+    new_acces.unlock();
     bool ret = findStudent(database, fieldFilter, valueFilter, results, fieldToUpdate, updateValue);
+    write_acces.unlock();
     if (not ret) {
         results.push_back("Problem with the query update \n"
                     "There is a problem that was not suppose to happened\n");
@@ -203,14 +225,32 @@ std::vector<std::string> insert(database_t *database, std::string query){
     updateStudent(student, "id", id);
     updateStudent(student, "section", section);
     updateStudent(student, "birthdate", birthdate);
+    new_acces.lock();
+    reader_registration.lock();
+    if (reader_c == 0){
+        write_acces.lock();
+    }
+    reader_c ++;
+    new_acces.unlock();
+    reader_registration.unlock();
     for (auto &currentStudent : database->data) {
         if (currentStudent.id == student.id) {
             results.push_back("Error id is already in the database\n");
             return results;
         }
     }
+    reader_registration.lock();
+    reader_c --;
+    if (reader_c == 0){
+        write_acces.unlock();
+    }
+    reader_registration.unlock();
     results.push_back(student_to_str(student));
+    new_acces.lock();
+    write_acces.lock();
+    new_acces.unlock();
     db_add(database, student);
+    write_acces.unlock();
     return results;
 
 }
@@ -223,8 +263,11 @@ std::vector<std::string> deletion(database_t *database, std::string query){
                     "Please enter the arguments correctly \n");
         return results;
     }
-
+    new_acces.lock();
+    write_acces.lock();
+    new_acces.unlock();
     bool ret = findStudent(database, field, value, results, "delete");
+    write_acces.unlock();
     if (not ret) {
         results.push_back("Problem with the query update \n"
                     "There is a problem that was not suppose to happened\n");
