@@ -26,12 +26,12 @@
 
 
 
-int main() {
+int main(int argc, const char* argv[]) {
     std::cout << "Hello, I'm the server " << PORT <<  std::endl;
 
     std::cout << "Loading the Db" << std::endl;
     database_t *db = new database_t();
-    db_load(db, "students.bin");
+    db_load(db, argv[argc-1]);
 
 
     int serverSocket = check(socket(AF_INET, SOCK_STREAM, 0), "Serv: failed to create socket");

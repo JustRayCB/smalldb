@@ -97,25 +97,54 @@ bool findStudent(database_t *database, std::string &field, std::string &value,
 
     }
     size_t idx = 0;
-    for (auto &student : database->data) {
+    size_t sizeVector = database->data.size();
+
+    while (idx < sizeVector) {
+        auto &student = database->data[idx];
         if (isSearchedStudent(field, value, student)) {
-            if (isUpdate) {//delete function
+            if (isUpdate) {
                 updateStudent(student, fieldToUpdate, updateValue);
                 results.push_back(student_to_str(student));
             }
-            else if (not isUpdate and not isDelete) { //select function
+            else if (not isUpdate and not isDelete) {
                 results.push_back(student_to_str(student));
             }
             else {
                 results.push_back(student_to_str(student));
                 database->data.erase(database->data.begin()+idx);
-            }
-            if (field == "id") {
-                return true;
+                sizeVector--;
+                idx--;
             }
         }
         idx++;
+
+    
     }
+    //for (auto &student : database->data) {
+        //if (isSearchedStudent(field, value, student)) {
+            //if (isUpdate) {//delete function
+                //updateStudent(student, fieldToUpdate, updateValue);
+                //results.push_back(student_to_str(student));
+            //}
+            //else if (not isUpdate and not isDelete) { //select function
+                //results.push_back(student_to_str(student));
+            //}
+            //else {
+                //results.push_back(student_to_str(student));
+                ////for (auto stdu : database->data) {
+                    ////std::cout << "here" << std::endl;
+                    ////std::cout << student_to_str(stdu);
+                ////}
+                ////std::cout << database->data.begin() << std::endl;
+                ////std::cout << student_to_str(database->data[9]); 
+                ////database->data.erase(database->data.begin()+idx);
+            //}
+            //if (field == "id") {
+                //return true;
+            //}
+        //}
+        //idx++;
+    //}
     return true;
 }
 

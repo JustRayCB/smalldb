@@ -41,10 +41,15 @@ void student_to_str(char *buffer, const student_t *s, size_t buffer_size) {
 
 
 std::string student_to_str(const student_t &s){
+    char charBuffer[256];
     std::string myBuffer;
-    myBuffer = std::to_string(s.id) + ": " + std::string(s.fname) + " " + std::string(s.lname) + " in section " + std::string(s.section)
-    + ", born on the " + std::to_string(s.birthdate.tm_mday) + "/" + std::to_string(s.birthdate.tm_mon + 1) + "/"
-    + std::to_string(s.birthdate.tm_year+1900)+'\n';
+    //myBuffer = std::to_string(s.id) + ": " + std::string(s.fname) + " " + std::string(s.lname) + " in section " + std::string(s.section)
+    //+ ", born on the " + std::to_string(s.birthdate.tm_mday) + "/" + std::to_string(s.birthdate.tm_mon + 1) + "/"
+    //+ std::to_string(s.birthdate.tm_year+1900)+'\n';
+    snprintf(charBuffer, 256, "%.9u: %s %s in section %s, born on the %.2d/%.2d/%.2d\n",
+            s.id, s.fname, s.lname, s.section, s.birthdate.tm_mday, s.birthdate.tm_mon + 1, s.birthdate.tm_year + 1900);
+
+    myBuffer = charBuffer;
     return myBuffer;
 }
 

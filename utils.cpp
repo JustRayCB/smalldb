@@ -24,7 +24,7 @@ void printResult(const Client &client, std::vector<std::string> &results){
         send(client.socket, &convertedSize, sizeof(convertedSize), 0);
         size_t totalSize = 0;
         for (auto &value : results) {
-            std::cout << value;
+            //std::cout << value;
             value += '\0';
             valueSize = value.length();
             convertedSize = htonl(valueSize);
@@ -46,7 +46,7 @@ void *handleConnection(void *pClient){
     std::vector<std::string> results;
 
     while ((bytesRead = recv(client.socket, msg, BUFFSIZE, 0)) > 0) {
-        std::cout <<"Server has received : " << msg << std::endl;
+        //std::cout <<"Server has received : " << msg << std::endl;
         tmp = msg;
         // check message
         if (tmp.substr(0, 6) == "select"){
@@ -62,7 +62,8 @@ void *handleConnection(void *pClient){
             results = deletion(client.db, tmp.substr(7, tmp.length()));
         }
         else{
-         std::cout << "Unknown method" << std::endl;
+         //std::cout << "Unknown method" << std::endl;
+         results = {"Unknown method"};
         }
         printResult(client, results);
         memset(msg, 0, BUFFSIZE);
