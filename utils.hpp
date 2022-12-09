@@ -8,8 +8,6 @@ struct Client{
     database_t *db;
 };
 
-void signalHandler(int signum);
-
 int check(int exp, const char *msg);
 
 void *handleConnection(void *client);
