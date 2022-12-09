@@ -29,6 +29,7 @@ void signalHandler(int signum) {
     if (signum == SIGINT) {
         std::cout << "Handling SIGINT ..." << std::endl;
         fclose(stdin);
+        sigint = 0;
     } else if (signum == SIGUSR1) {
         std::cout << "Handling SIGUSR1 ..." << std::endl;
         sigint = 2;
@@ -64,11 +65,12 @@ int main(int argc, const char* argv[]) {
     std::vector<int> sockets;
     //cout la size et prendre à chaque fois le dernier thread
 
-    while (clientSocket != -1 and std::cin) {
+    while (std::cin and sigint) {
         std::cout << "sigint = " << sigint << std::endl;
         if (sigint == 2) {
                 std::cout << "Saving the database" << std::endl;
                 db_save(db);
+                sigint = 1;
         }
         std::cout << "ICI" << std::endl;
         std::cout << "Waiting for connections ... " << std::endl;
@@ -78,7 +80,7 @@ int main(int argc, const char* argv[]) {
         if (clientSocket < 0) {
             if (errno == EINTR) {
                 std::cout << "Catch SIGNAL" << std::endl;
-                // continue;
+                continue;
             }
         }
         else {
@@ -99,12 +101,14 @@ int main(int argc, const char* argv[]) {
         std::cout << "Fin de la boucle" << std::endl;
     
     }
-    for (auto &current : threads) {
-        pthread_join(current, nullptr);
-    }
+    //for (auto &current : threads) {
+        //pthread_join(current, nullptr);
+    //}
     for (auto &socket : sockets) {
         close(socket);
     }
+    std::cout << "Saving the database before closing" << std::endl;
+    db_save(db);
     delete db;
     db = nullptr;
     std::cout << "The server is closing" << std::endl;
