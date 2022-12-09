@@ -47,7 +47,7 @@ int main(){
     int valueSize;
 
     std::cout << "Please enter a command : ";
-    while (std::getline(std::cin, msg)){
+    while (std::getline(std::cin, msg) and msg != "exit"){
         msg += '\0';
         send(client, msg.c_str(), msg.size(), 0);
         recv(client, &valueSize, sizeof(valueSize), 0);
