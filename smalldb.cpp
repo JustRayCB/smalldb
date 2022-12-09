@@ -28,7 +28,7 @@ int sigint = 1;
 void signalHandler(int signum) {
     if (signum == SIGINT) {
         std::cout << "Handling SIGINT ..." << std::endl;
-        fclose(stdin);
+        //fclose(stdin);
         sigint = 0;
     } else if (signum == SIGUSR1) {
         std::cout << "Handling SIGUSR1 ..." << std::endl;
@@ -61,11 +61,11 @@ int main(int argc, const char* argv[]) {
     check(bind(serverSocket, (struct sockaddr *)&address, sizeof(address)), "Bind failed !");
     check(listen(serverSocket, 10), "Listen failed !");
     size_t addrlenf = sizeof(clientAddress);
-    std::vector<pthread_t> threads;
+    std::vector<pthread_t*> threads;
     std::vector<int> sockets;
     //cout la size et prendre à chaque fois le dernier thread
 
-    while (std::cin and sigint) {
+    while (sigint) {
         std::cout << "sigint = " << sigint << std::endl;
         if (sigint == 2) {
                 std::cout << "Saving the database" << std::endl;
@@ -92,8 +92,8 @@ int main(int argc, const char* argv[]) {
             sigprocmask(SIG_BLOCK, &mask, NULL);
             Client *pClient = new Client({clientSocket, db});
             std::cout << "Client (" << clientSocket <<") connected" << std::endl;
-            pthread_t thread;
-            pthread_create(&thread, nullptr, handleConnection, pClient);
+            pthread_t *thread = new pthread_t();
+            pthread_create(thread, nullptr, handleConnection, pClient);
             threads.push_back(thread);
             sockets.push_back(clientSocket);
             sigprocmask(SIG_UNBLOCK, &mask, NULL);
@@ -101,9 +101,11 @@ int main(int argc, const char* argv[]) {
         std::cout << "Fin de la boucle" << std::endl;
     
     }
-    //for (auto &current : threads) {
-        //pthread_join(current, nullptr);
-    //}
+    for (auto &current : threads) {
+        pthread_cancel(*current);
+        pthread_join(*current, nullptr);
+        delete current;
+    }
     for (auto &socket : sockets) {
         close(socket);
     }
@@ -113,6 +115,7 @@ int main(int argc, const char* argv[]) {
     db = nullptr;
     std::cout << "The server is closing" << std::endl;
     close(serverSocket);
-
+    std::cout << "closed" << std::endl;
+    //return system("/bin/bash -c ./killClient");
     return 0;
 }

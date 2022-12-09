@@ -110,7 +110,10 @@ bool findStudent(database_t *database, std::string &field, std::string &value,
         auto &student = database->data[idx];
         if (isSearchedStudent(field, value, student)) {
             if (isUpdate) {
+                new_acces.lock();
+                write_acces.lock();
                 updateStudent(student, fieldToUpdate, updateValue);
+                write_acces.unlock();
                 results.push_back(student_to_str(student));
             }
             else if (not isUpdate and not isDelete) {
@@ -118,7 +121,10 @@ bool findStudent(database_t *database, std::string &field, std::string &value,
             }
             else {
                 results.push_back(student_to_str(student));
+                new_acces.lock();
+                write_acces.lock();
                 database->data.erase(database->data.begin()+idx);
+                write_acces.unlock();
                 sizeVector--;
                 idx--;
             }
@@ -127,31 +133,6 @@ bool findStudent(database_t *database, std::string &field, std::string &value,
 
     
     }
-    //for (auto &student : database->data) {
-        //if (isSearchedStudent(field, value, student)) {
-            //if (isUpdate) {//delete function
-                //updateStudent(student, fieldToUpdate, updateValue);
-                //results.push_back(student_to_str(student));
-            //}
-            //else if (not isUpdate and not isDelete) { //select function
-                //results.push_back(student_to_str(student));
-            //}
-            //else {
-                //results.push_back(student_to_str(student));
-                ////for (auto stdu : database->data) {
-                    ////std::cout << "here" << std::endl;
-                    ////std::cout << student_to_str(stdu);
-                ////}
-                ////std::cout << database->data.begin() << std::endl;
-                ////std::cout << student_to_str(database->data[9]); 
-                ////database->data.erase(database->data.begin()+idx);
-            //}
-            //if (field == "id") {
-                //return true;
-            //}
-        //}
-        //idx++;
-    //}
     return true;
 }
 
@@ -170,12 +151,12 @@ std::vector<std::string> select(database_t *database, std::string query){
     if (reader_c == 0){
         write_acces.lock();
     }
-    reader_c ++;
+    reader_c++;
     new_acces.unlock();
     reader_registration.unlock();
     bool ret = findStudent(database, field, value, results);
     reader_registration.lock();
-    reader_c --;
+    reader_c--;
     if (reader_c == 0){
         write_acces.unlock();
     }
@@ -199,10 +180,22 @@ std::vector<std::string> update(database_t *database, std::string query){
         return results;
     }
     new_acces.lock();
-    write_acces.lock();
+    reader_registration.lock();
+    if (reader_c == 0){
+        write_acces.lock();
+    }
+    reader_c++;
     new_acces.unlock();
+    reader_registration.unlock();
+
     bool ret = findStudent(database, fieldFilter, valueFilter, results, fieldToUpdate, updateValue);
-    write_acces.unlock();
+    reader_registration.lock();
+    reader_c--;
+    if (reader_c == 0){
+        write_acces.unlock();
+    }
+    reader_registration.unlock();
+
     if (not ret) {
         results.push_back("Problem with the query update \n"
                     "There is a problem that was not suppose to happened\n");
@@ -226,14 +219,16 @@ std::vector<std::string> insert(database_t *database, std::string query){
     updateStudent(student, "id", id);
     updateStudent(student, "section", section);
     updateStudent(student, "birthdate", birthdate);
+
     new_acces.lock();
     reader_registration.lock();
     if (reader_c == 0){
         write_acces.lock();
     }
-    reader_c ++;
+    reader_c++;
     new_acces.unlock();
     reader_registration.unlock();
+
     for (auto &currentStudent : database->data) {
         if (currentStudent.id == student.id) {
             results.push_back("Error id is already in the database\n");
@@ -241,17 +236,18 @@ std::vector<std::string> insert(database_t *database, std::string query){
         }
     }
     reader_registration.lock();
-    reader_c --;
+    reader_c--;
     if (reader_c == 0){
         write_acces.unlock();
     }
     reader_registration.unlock();
+
     results.push_back(student_to_str(student));
     new_acces.lock();
     write_acces.lock();
-    new_acces.unlock();
     db_add(database, student);
     write_acces.unlock();
+
     return results;
 
 }
@@ -265,10 +261,23 @@ std::vector<std::string> deletion(database_t *database, std::string query){
         return results;
     }
     new_acces.lock();
-    write_acces.lock();
+    reader_registration.lock();
+    if (reader_c == 0){
+        write_acces.lock();
+    }
+    reader_c++;
     new_acces.unlock();
+    reader_registration.unlock();
+
     bool ret = findStudent(database, field, value, results, "delete");
-    write_acces.unlock();
+
+    reader_registration.lock();
+    reader_c--;
+    if (reader_c == 0){
+        write_acces.unlock();
+    }
+    reader_registration.unlock();
+
     if (not ret) {
         results.push_back("Problem with the query update \n"
                     "There is a problem that was not suppose to happened\n");
