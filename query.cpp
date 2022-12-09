@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <tuple>
+#include <mutex>
 
 #include "db.hpp"
 #include "query.hpp"
