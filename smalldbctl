@@ -1,0 +1,27 @@
+#!/bin/bash
+
+err(){
+    echo -e "\e[1;31mE: $* \e[0m" >> /dev/stderr
+}
+
+TO_LAUNCH=$1
+
+if [[ $TO_LAUNCH == "sync" ]]
+    pid=$(pgrep smalldb)
+    kill -SIGUSR1 $pid
+    echo "Done"
+
+elif [[ $TO_LAUNCH == "stop" ]]
+    pid=$(pgrep smalldb)
+    kill -SIGINT $pid
+    echo "Done"
+
+elif [[ $TO_LAUNCH == "list" ]]
+    pidS=$(pgrep smalldb)
+    #ss --no-header -Ontp4 'sport = :28772' | awk '{print $4;}'
+    ss --no-header -Ontp4 'sport = :28772' | awk '{split($5, a, ":"); print a[1]}'
+    echo "Done"
+fi
+
+
+
