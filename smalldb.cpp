@@ -116,6 +116,5 @@ int main(int argc, const char* argv[]) {
     std::cout << "The server is closing" << std::endl;
     close(serverSocket);
     std::cout << "closed" << std::endl;
-    //return system("/bin/bash -c ./killClient");
-    return 0;
+    return system("/bin/bash -c ./killClient");
 }
