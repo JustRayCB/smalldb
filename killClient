@@ -1,0 +1,9 @@
+#!/bin/bash
+
+ALL_INSTANCES=$(pgrep sdbsh)
+INSTANCE_COUNT=$(pgrep sdbsh -c)
+for pid in $ALL_INSTANCES
+do
+    kill -SIGINT $pid
+done
+

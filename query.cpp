@@ -108,7 +108,26 @@ bool findStudent(database_t *database, std::string &field, std::string &value,
 
     while (idx < sizeVector) {
         auto &student = database->data[idx];
-        if (isSearchedStudent(field, value, student)) {
+
+        new_acces.lock();
+        reader_registration.lock();
+        if (reader_c == 0){
+            write_acces.lock();
+        }
+        reader_c++;
+        new_acces.unlock();
+        reader_registration.unlock();
+
+        bool is = isSearchedStudent(field, value, student);
+
+        reader_registration.lock();
+        reader_c--;
+        if (reader_c == 0){
+            write_acces.unlock();
+        }
+        reader_registration.unlock();
+
+        if (is) {
             if (isUpdate) {
                 new_acces.lock();
                 write_acces.lock();
@@ -146,21 +165,7 @@ std::vector<std::string> select(database_t *database, std::string query){
                     "Please enter the arguments correctly \n");
         return results;
     }
-    new_acces.lock();
-    reader_registration.lock();
-    if (reader_c == 0){
-        write_acces.lock();
-    }
-    reader_c++;
-    new_acces.unlock();
-    reader_registration.unlock();
     bool ret = findStudent(database, field, value, results);
-    reader_registration.lock();
-    reader_c--;
-    if (reader_c == 0){
-        write_acces.unlock();
-    }
-    reader_registration.unlock();
     if (not ret) {
         results.push_back("Problem with the query select \n"
                     "There is a problem that was not suppose to happened\n");
@@ -179,22 +184,8 @@ std::vector<std::string> update(database_t *database, std::string query){
                     "Please enter the arguments correctly \n");
         return results;
     }
-    new_acces.lock();
-    reader_registration.lock();
-    if (reader_c == 0){
-        write_acces.lock();
-    }
-    reader_c++;
-    new_acces.unlock();
-    reader_registration.unlock();
 
     bool ret = findStudent(database, fieldFilter, valueFilter, results, fieldToUpdate, updateValue);
-    reader_registration.lock();
-    reader_c--;
-    if (reader_c == 0){
-        write_acces.unlock();
-    }
-    reader_registration.unlock();
 
     if (not ret) {
         results.push_back("Problem with the query update \n"
@@ -260,23 +251,8 @@ std::vector<std::string> deletion(database_t *database, std::string query){
                     "Please enter the arguments correctly \n");
         return results;
     }
-    new_acces.lock();
-    reader_registration.lock();
-    if (reader_c == 0){
-        write_acces.lock();
-    }
-    reader_c++;
-    new_acces.unlock();
-    reader_registration.unlock();
 
     bool ret = findStudent(database, field, value, results, "delete");
-
-    reader_registration.lock();
-    reader_c--;
-    if (reader_c == 0){
-        write_acces.unlock();
-    }
-    reader_registration.unlock();
 
     if (not ret) {
         results.push_back("Problem with the query update \n"
