@@ -78,6 +78,14 @@ void *handleConnection(void *pClient){
     return nullptr;
 }
 
+void signalHandler(int signum) {
+   if (signum == SIGINT) { //^C
+                           //Save and end programm
+        std::cout << "Handling SIGINT signal ... "<< std::endl;
+        fclose(stdin); // Close stdin to get out of the waiting for input
+    }
+}
+
 
 int check(int exp, const char *msg){
     if (exp == SOCKETERROR) {

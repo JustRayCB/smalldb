@@ -17,4 +17,3 @@ bool findStudent(database_t *database, std::string &field, std::string &value, s
 
 
 #endif
-

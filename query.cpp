@@ -101,12 +101,10 @@ bool findStudent(database_t *database, std::string &field, std::string &value,
 
     while (idx < sizeVector) {
         auto &student = database->data[idx];
-
-        bool is = isSearchedStudent(field, value, student);
-
-        if (is) {
+        if (isSearchedStudent(field, value, student)) {
             if (isUpdate) {
                 updateStudent(student, fieldToUpdate, updateValue);
+                results.push_back(student_to_str(student));
             }
             else if (not isUpdate and not isDelete) {
                 results.push_back(student_to_str(student));
@@ -122,6 +120,31 @@ bool findStudent(database_t *database, std::string &field, std::string &value,
 
     
     }
+    //for (auto &student : database->data) {
+        //if (isSearchedStudent(field, value, student)) {
+            //if (isUpdate) {//delete function
+                //updateStudent(student, fieldToUpdate, updateValue);
+                //results.push_back(student_to_str(student));
+            //}
+            //else if (not isUpdate and not isDelete) { //select function
+                //results.push_back(student_to_str(student));
+            //}
+            //else {
+                //results.push_back(student_to_str(student));
+                ////for (auto stdu : database->data) {
+                    ////std::cout << "here" << std::endl;
+                    ////std::cout << student_to_str(stdu);
+                ////}
+                ////std::cout << database->data.begin() << std::endl;
+                ////std::cout << student_to_str(database->data[9]); 
+                ////database->data.erase(database->data.begin()+idx);
+            //}
+            //if (field == "id") {
+                //return true;
+            //}
+        //}
+        //idx++;
+    //}
     return true;
 }
 
@@ -135,6 +158,7 @@ std::vector<std::string> select(database_t *database, std::string query){
                     "Please enter the arguments correctly \n");
         return results;
     }
+    
     bool ret = findStudent(database, field, value, results);
     if (not ret) {
         results.push_back("Problem with the query select \n"
@@ -154,9 +178,8 @@ std::vector<std::string> update(database_t *database, std::string query){
                     "Please enter the arguments correctly \n");
         return results;
     }
-
+    
     bool ret = findStudent(database, fieldFilter, valueFilter, results, fieldToUpdate, updateValue);
-
     if (not ret) {
         results.push_back("Problem with the query update \n"
                     "There is a problem that was not suppose to happened\n");
@@ -180,18 +203,14 @@ std::vector<std::string> insert(database_t *database, std::string query){
     updateStudent(student, "id", id);
     updateStudent(student, "section", section);
     updateStudent(student, "birthdate", birthdate);
-
-
     for (auto &currentStudent : database->data) {
         if (currentStudent.id == student.id) {
             results.push_back("Error id is already in the database\n");
             return results;
         }
     }
-
     results.push_back(student_to_str(student));
     db_add(database, student);
-
     return results;
 
 }
@@ -206,7 +225,6 @@ std::vector<std::string> deletion(database_t *database, std::string query){
     }
 
     bool ret = findStudent(database, field, value, results, "delete");
-
     if (not ret) {
         results.push_back("Problem with the query update \n"
                     "There is a problem that was not suppose to happened\n");
