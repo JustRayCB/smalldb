@@ -24,6 +24,7 @@ for f in queries/*.txt ; do
         echo "Impossible de lancer le serveur"
         exit 1
     fi
+    sleep 1
 
     echo ">>> lance le client"
     ../sdbsh 127.0.0.1 < "${f}" > "data/${file}"
