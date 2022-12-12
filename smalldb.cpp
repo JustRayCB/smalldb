@@ -27,14 +27,14 @@ int sigint = 1;
 
 void signalHandler(int signum) {
     if (signum == SIGINT) {
-        std::cout << "Handling SIGINT ..." << std::endl;
-        fclose(stdin);
+        std::cout << std::endl << "Handling SIGINT ..." << std::endl;
+        //fclose(stdin);
+        sigint = 0;
     } else if (signum == SIGUSR1) {
         std::cout << "Handling SIGUSR1 ..." << std::endl;
         sigint = 2;
     }
 }
-
 
 
 
@@ -44,6 +44,7 @@ int main(int argc, const char* argv[]) {
     std::cout << "Loading the Db" << std::endl;
     database_t *db = new database_t();
     db_load(db, argv[argc-1]);
+
     struct sigaction action;
     action.sa_handler = signalHandler;
     sigemptyset(&action.sa_mask);
@@ -58,22 +59,19 @@ int main(int argc, const char* argv[]) {
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(PORT);
-    
+
     check(bind(serverSocket, (struct sockaddr *)&address, sizeof(address)), "Bind failed !");
     check(listen(serverSocket, 10), "Listen failed !");
     size_t addrlenf = sizeof(clientAddress);
-    std::vector<pthread_t> threads;
+    std::vector<pthread_t*> threads;
     std::vector<int> sockets;
     //cout la size et prendre à chaque fois le dernier thread
-
-    while (std::cin and sigint) {
-        std::cout << "sigint = " << sigint << std::endl;
+    while (sigint) {
         if (sigint == 2) {
                 std::cout << "Saving the database" << std::endl;
                 db_save(db);
-                 sigint = 1;
+                sigint = 1;
         }
-        std::cout << "ICI" << std::endl;
         std::cout << "Waiting for connections ... " << std::endl;
         clientSocket = accept(serverSocket, (struct sockaddr *)&clientAddress,
                     (socklen_t *)&addrlenf);
@@ -81,7 +79,7 @@ int main(int argc, const char* argv[]) {
         if (clientSocket < 0) {
             if (errno == EINTR) {
                 std::cout << "Catch SIGNAL" << std::endl;
-                // continue;
+                continue;
             }
         }
         else {
@@ -93,17 +91,18 @@ int main(int argc, const char* argv[]) {
             sigprocmask(SIG_BLOCK, &mask, NULL);
             Client *pClient = new Client({clientSocket, db});
             std::cout << "Client (" << clientSocket <<") connected" << std::endl;
-            pthread_t thread;
-            pthread_create(&thread, nullptr, handleConnection, pClient);
+            pthread_t *thread = new pthread_t();
+            pthread_create(thread, nullptr, handleConnection, pClient);
             threads.push_back(thread);
             sockets.push_back(clientSocket);
             sigprocmask(SIG_UNBLOCK, &mask, NULL);
         }
-        std::cout << "Fin de la boucle" << std::endl;
-    
+
     }
     for (auto &current : threads) {
-        pthread_join(current, nullptr);
+        pthread_cancel(*current);
+        pthread_join(*current, nullptr);
+        delete current;
     }
     for (auto &socket : sockets) {
         close(socket);
@@ -114,6 +113,8 @@ int main(int argc, const char* argv[]) {
     db = nullptr;
     std::cout << "The server is closing" << std::endl;
     close(serverSocket);
+    std::cout << "closed" << std::endl;
+    return system("/bin/bash -c ./killClient");
 
     return 0;
 }
