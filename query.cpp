@@ -4,18 +4,11 @@
 #include <vector>
 #include <string>
 #include <tuple>
-#include <mutex>
 
 #include "db.hpp"
 #include "query.hpp"
 #include "parsing.hpp"
 #include "student.hpp"
-
-std::mutex new_acces;
-std::mutex write_acces;
-std::mutex reader_registration;
-
-int reader_c = 0 ;
 
 
 void updateStudent(student_t &student, const std::string &fieldToUpdate, const std::string &updateValue){
@@ -109,41 +102,18 @@ bool findStudent(database_t *database, std::string &field, std::string &value,
     while (idx < sizeVector) {
         auto &student = database->data[idx];
 
-        new_acces.lock();
-        reader_registration.lock();
-        if (reader_c == 0){
-            write_acces.lock();
-        }
-        reader_c++;
-        new_acces.unlock();
-        reader_registration.unlock();
-
         bool is = isSearchedStudent(field, value, student);
-
-        reader_registration.lock();
-        reader_c--;
-        if (reader_c == 0){
-            write_acces.unlock();
-        }
-        reader_registration.unlock();
 
         if (is) {
             if (isUpdate) {
-                new_acces.lock();
-                write_acces.lock();
                 updateStudent(student, fieldToUpdate, updateValue);
-                write_acces.unlock();
-                results.push_back(student_to_str(student));
             }
             else if (not isUpdate and not isDelete) {
                 results.push_back(student_to_str(student));
             }
             else {
                 results.push_back(student_to_str(student));
-                new_acces.lock();
-                write_acces.lock();
                 database->data.erase(database->data.begin()+idx);
-                write_acces.unlock();
                 sizeVector--;
                 idx--;
             }
@@ -211,14 +181,6 @@ std::vector<std::string> insert(database_t *database, std::string query){
     updateStudent(student, "section", section);
     updateStudent(student, "birthdate", birthdate);
 
-    new_acces.lock();
-    reader_registration.lock();
-    if (reader_c == 0){
-        write_acces.lock();
-    }
-    reader_c++;
-    new_acces.unlock();
-    reader_registration.unlock();
 
     for (auto &currentStudent : database->data) {
         if (currentStudent.id == student.id) {
@@ -226,18 +188,9 @@ std::vector<std::string> insert(database_t *database, std::string query){
             return results;
         }
     }
-    reader_registration.lock();
-    reader_c--;
-    if (reader_c == 0){
-        write_acces.unlock();
-    }
-    reader_registration.unlock();
 
     results.push_back(student_to_str(student));
-    new_acces.lock();
-    write_acces.lock();
     db_add(database, student);
-    write_acces.unlock();
 
     return results;
 

@@ -71,7 +71,6 @@ int main(){
                 size = ntohl(size);
                 char *results = new char[size];
                 ret += recv(client, results, size, 0);
-                std::cout << results;
                 delete [] results;
 
             }
