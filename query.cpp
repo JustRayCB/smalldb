@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <iostream>
+#include <pthread.h>
 #include <vector>
 #include <string>
 #include <tuple>
@@ -9,6 +10,7 @@
 #include "query.hpp"
 #include "parsing.hpp"
 #include "student.hpp"
+#include "common.hpp"
 
 
 void updateStudent(student_t &student, const std::string &fieldToUpdate, const std::string &updateValue){
@@ -100,51 +102,104 @@ bool findStudent(database_t *database, std::string &field, std::string &value,
     size_t sizeVector = database->data.size();
 
     while (idx < sizeVector) {
+
+
+        if (pthread_mutex_lock(&newAccess)!= 0) {
+            std::cout << "Error while locking the mutex access" << std::endl;
+        
+        }
+        if (pthread_mutex_lock(&readerAccess)!= 0) {
+            std::cout << "Error while locking the mutex reader" << std::endl;
+        
+        }
+        if (readerC == 0) {
+            if (pthread_mutex_lock(&writeAccess)!= 0) {
+                std::cout << "Error while locking the mutex reader" << std::endl;
+            
+            }
+        }
+        readerC++;
+        if (pthread_mutex_unlock(&newAccess)!= 0) {
+            std::cout << "Error while unlocking the mutex access" << std::endl;
+
+        }
+        if (pthread_mutex_unlock(&readerAccess)!= 0) {
+            std::cout << "Error while unlocking the mutex reader" << std::endl;
+
+        }
+
         auto &student = database->data[idx];
-        if (isSearchedStudent(field, value, student)) {
+        bool res = isSearchedStudent(field, value, student);
+        if (pthread_mutex_lock(&readerAccess)!= 0) {
+            std::cout << "Error while locking the mutex reader" << std::endl;
+
+        }
+        readerC--;
+        if (readerC == 0) {
+            if (pthread_mutex_unlock(&writeAccess)!= 0) {
+                std::cout << "Error while unlocking the mutex reader" << std::endl;
+
+            }
+        }
+        if (pthread_mutex_unlock(&readerAccess)!= 0) {
+            std::cout << "Error while unlocking the mutex reader" << std::endl;
+
+        }
+
+        if (res) {
             if (isUpdate) {
+                if (pthread_mutex_lock(&newAccess)!= 0) {
+                    std::cout << "Error while locking the mutex access" << std::endl;
+
+                }
+                if (pthread_mutex_lock(&writeAccess)!= 0) {
+                    std::cout << "Error while locking the mutex reader" << std::endl;
+
+                }
+
+                if (pthread_mutex_unlock(&newAccess)!= 0) {
+                    std::cout << "Error while unlocking the mutex access" << std::endl;
+
+                }
                 updateStudent(student, fieldToUpdate, updateValue);
                 results.push_back(student_to_str(student));
+                if (pthread_mutex_unlock(&writeAccess)!= 0) {
+                    std::cout << "Error while unlocking the mutex reader" << std::endl;
+                }
+
+
             }
             else if (not isUpdate and not isDelete) {
                 results.push_back(student_to_str(student));
             }
             else {
                 results.push_back(student_to_str(student));
+                                if (pthread_mutex_lock(&newAccess)!= 0) {
+                    std::cout << "Error while locking the mutex access" << std::endl;
+
+                }
+                if (pthread_mutex_lock(&writeAccess)!= 0) {
+                    std::cout << "Error while locking the mutex reader" << std::endl;
+
+                }
+
+                if (pthread_mutex_unlock(&newAccess)!= 0) {
+                    std::cout << "Error while unlocking the mutex access" << std::endl;
+
+                }
                 database->data.erase(database->data.begin()+idx);
                 sizeVector--;
                 idx--;
+                if (pthread_mutex_unlock(&writeAccess)!= 0) {
+                    std::cout << "Error while unlocking the mutex reader" << std::endl;
+                }
+
             }
         }
         idx++;
 
     
     }
-    //for (auto &student : database->data) {
-        //if (isSearchedStudent(field, value, student)) {
-            //if (isUpdate) {//delete function
-                //updateStudent(student, fieldToUpdate, updateValue);
-                //results.push_back(student_to_str(student));
-            //}
-            //else if (not isUpdate and not isDelete) { //select function
-                //results.push_back(student_to_str(student));
-            //}
-            //else {
-                //results.push_back(student_to_str(student));
-                ////for (auto stdu : database->data) {
-                    ////std::cout << "here" << std::endl;
-                    ////std::cout << student_to_str(stdu);
-                ////}
-                ////std::cout << database->data.begin() << std::endl;
-                ////std::cout << student_to_str(database->data[9]); 
-                ////database->data.erase(database->data.begin()+idx);
-            //}
-            //if (field == "id") {
-                //return true;
-            //}
-        //}
-        //idx++;
-    //}
     return true;
 }
 

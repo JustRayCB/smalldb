@@ -13,10 +13,9 @@
 #include <signal.h>
 
 
-#include "student.hpp"
 #include "utils.hpp"
 #include "db.hpp"
-#include "query.hpp"
+#include "common.hpp"
 
 #define PORT (28772)
 #define SOCKETERROR (-1)
@@ -24,6 +23,10 @@
 #define BUFFSIZE (200)
 
 int sigint = 1;
+pthread_mutex_t newAccess;
+pthread_mutex_t writeAccess;
+pthread_mutex_t readerAccess;
+int readerC;
 
 void signalHandler(int signum) {
     if (signum == SIGINT) {
@@ -39,6 +42,10 @@ void signalHandler(int signum) {
 
 
 int main(int argc, const char* argv[]) {
+    newAccess = PTHREAD_MUTEX_INITIALIZER;
+    writeAccess = PTHREAD_MUTEX_INITIALIZER;
+    readerAccess = PTHREAD_MUTEX_INITIALIZER;
+    readerC = 0;
     std::cout << "Hello, I'm the server " << PORT <<  std::endl;
 
     std::cout << "Loading the Db" << std::endl;

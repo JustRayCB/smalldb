@@ -1,4 +1,5 @@
-CXXFLAGS+=-std=c++17 -fsanitize=undefined,leak,address -g -Wall -Wextra -Wpedantic -D_GNU_SOURCE -Werror=all -O2
+CXXFLAGS+=-std=c++17  -fsanitize=thread -g -Wall -Wextra -Wpedantic -D_GNU_SOURCE -Werror=all -O2
+#-fsanitize=undefined,leak,address
 CXX=g++
 LDLIBS+=-lpthread
 SOURCES = $(wildcard *.cpp */*.cpp)
@@ -8,13 +9,6 @@ OBJ=utils.o db.o student.o query.o parsing.o
 
 
 main: smalldb sdbsh
-#smalldb: smalldb.cpp ${OBJ}
-	#$(CXX) $(LDFLAGS) $^ -o $@ $(LOADLIBES) $(LDLIBS)
-
-#sdbsh: sdbsh.cpp #${OBJ}
-	#$(CXX) $(LDFLAGS) $^ -o $@ $(LOADLIBES) $(LDLIBS)
-
-
 sdbsh: sdbsh.cpp
 	$(CXX) -o sdbsh sdbsh.cpp $(CXXFLAGS) $(LDLIBS)
 
