@@ -6,19 +6,17 @@ err(){
 
 TO_LAUNCH=$1
 USAGE="monitoring list|stop|sync|"
+PID=$(pidof smalldb)
 
 if [[ $TO_LAUNCH == "sync" ]]; then
-    pid=$(pidof smalldb)
-    kill -SIGUSR1 $pid
+    kill -SIGUSR1 $PID
     echo "Done"
 
 elif [[ $TO_LAUNCH == "stop" ]]; then
-    pid=$(pidof smalldb)
-    kill -SIGINT $pid
+    kill -SIGINT $PID
     echo "Done"
 
 elif [[ $TO_LAUNCH == "list" ]]; then
-    pid=$(pidof smalldb)
     #ss --no-header -Ontp4 'sport = :28772' | awk '{print $4;}'
     ss --no-header -Ontp4 'sport = :28772' | awk '{split($5, a, ":"); print a[1]}'
     echo "Done"
