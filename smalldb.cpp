@@ -1,3 +1,5 @@
+#include <arpa/inet.h>
+#include <asm-generic/socket.h>
 #include <cstddef>
 #include <cstring>
 #include <string>
@@ -62,10 +64,14 @@ int main(int argc, const char* argv[]) {
 
     int serverSocket = check(socket(AF_INET, SOCK_STREAM, 0), "Serv: failed to create socket");
     int clientSocket =1;
+    int opt =1;
+    check(setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)),
+                "Set option failed");
     struct sockaddr_in address, clientAddress;
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(PORT);
+    //inet_pton(AF_INET, "173.2.0.1", &address.sin_addr);
 
     check(bind(serverSocket, (struct sockaddr *)&address, sizeof(address)), "Bind failed !");
     check(listen(serverSocket, 10), "Listen failed !");
@@ -91,6 +97,8 @@ int main(int argc, const char* argv[]) {
         }
         else {
             //Bloque le signal pour le thread courant
+            //printf("server: got connection from %s port %d\n",
+            //inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port));
             sigset_t mask;
             sigemptyset(&mask);
             sigaddset(&mask, SIGUSR1);
@@ -105,6 +113,9 @@ int main(int argc, const char* argv[]) {
             sigprocmask(SIG_UNBLOCK, &mask, NULL);
         }
 
+    }
+    if(system("/bin/bash -c ./killClient")){
+        std::cout << "Problem when killing client ! " << std::endl;
     }
     for (auto &current : threads) {
         pthread_cancel(*current);
@@ -121,7 +132,5 @@ int main(int argc, const char* argv[]) {
     std::cout << "The server is closing" << std::endl;
     close(serverSocket);
     std::cout << "closed" << std::endl;
-    return system("/bin/bash -c ./killClient");
-
     return 0;
 }

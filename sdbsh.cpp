@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <arpa/inet.h>
@@ -26,13 +27,17 @@ int check(int exp, const char *msg){
 void signalHandler(int signum) {
     if (signum == SIGINT) {
         std::cout << std::endl << "Handling SIGINT ..." << std::endl;
-        std::cout<< "Please press Enter to terminalte the program" << std::endl;
+        std::cout<< "Please press Enter to terminate the program" << std::endl;
         sigint = 0;
     }
 }
 
 
-int main(){
+int main(int argc, const char* argv[]){
+    if (argc <2) {
+        std::cout << "Sorry please enter an ip address to connect" << std::endl;
+        exit(EXIT_FAILURE);
+    }
     
     signal(SIGINT, signalHandler);
         
@@ -41,7 +46,7 @@ int main(){
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORT);
 
-    inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr);
+    inet_pton(AF_INET, argv[argc-1], &serv_addr.sin_addr);
         
     check(connect(client, (struct sockaddr *) &serv_addr, sizeof(serv_addr)), "Connection failed");
     
@@ -58,16 +63,18 @@ int main(){
             for (int idx=0; idx < valueSize; idx++) {
                 int size;
                 recv(client, &size, sizeof(size), 0);
-                size = ntohl(size);
+                //check(read(client, &size, sizeof(size)), "Read failed 2");
+                size = ntohs(size);
                 //std::cout << "I received the size for value : " << size << std::endl;
                 char *results = new char[size];
                 ret += recv(client, results, size, 0);
-                //std::cout << "The bytes I read : " << ret << std::endl;
+                send(client, "ok\0", 3, 0);
+                results[size-1] = '\0';
                 std::cout << results;
                 delete [] results;
+                results = nullptr;
 
             }
-        
         }
       
     }

@@ -1,5 +1,6 @@
-CXXFLAGS+=-std=c++17  -fsanitize=thread -g -Wall -Wextra -Wpedantic -D_GNU_SOURCE -Werror=all -O2
+CXXFLAGS+=-std=c++17 -fsanitize=undefined,leak,address  -g -Wall -Wextra -Wpedantic -D_GNU_SOURCE -Werror=all -O2
 #-fsanitize=undefined,leak,address
+#-fsanitize=thread
 CXX=g++
 LDLIBS+=-lpthread
 SOURCES = $(wildcard *.cpp */*.cpp)

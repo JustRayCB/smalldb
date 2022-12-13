@@ -28,8 +28,9 @@
  * ```
  * @return: true if the parsing was successful, false otherwise
  **/
-bool parse_update(std::string &query, std::string& field_filter, std::string &value_filter, std::string& field_to_update,
+int parse_update(std::string &query, std::string& field_filter, std::string &value_filter, std::string& field_to_update,
         std::string &update_value);
+void errorParseUpdate(int returnValue, std::vector<std::string> &results);
 
 /**
  * Parse the arguments of an insert query.
@@ -41,12 +42,14 @@ bool parse_update(std::string &query, std::string& field_filter, std::string &va
  * ```
  * @return: true if the parsing was successful, false otherwise
  **/
-bool parse_insert(std::string& query_arguments, std::string& fname, std::string& lname, std::string& id, std::string& section, std::string& birthdate);
+int parse_insert(std::string& query_arguments, std::string& fname, std::string& lname, std::string& id, std::string& section, std::string& birthdate);
+void errorParseInsert(int returnValue, std::vector<std::string> &results);
 
 /** 
  * Parse field=value selectors.
  **/
-bool parse_selectors(std::string &query, std::string &field, std::string &value);
+int parse_selectors(std::string &query, std::string &field, std::string &value);
+void errorParseSelectors(int returnValue, std::vector<std::string> &results);
 
 /*
  * @brief: Parse a birthdate value and update all arguments with the integer

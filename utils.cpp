@@ -22,15 +22,17 @@ void printResult(const Client &client, std::vector<std::string> &results){
         convertedSize = htonl(valueSize);
         //std::cout << "size : " << valueSize << std::endl;
         send(client.socket, &convertedSize, sizeof(convertedSize), 0);
+        //check(write(client.socket, &convertedSize, sizeof(convertedSize)), "Write failed");
         size_t totalSize = 0;
+        char ok[3];
         for (auto &value : results) {
             //std::cout << value;
             value += '\0';
             valueSize = value.length();
-            convertedSize = htonl(valueSize);
-            //std::cout << "size : " << valueSize << std::endl;
+            convertedSize = htons(valueSize);
             send(client.socket, &convertedSize, sizeof(convertedSize), 0);
             send(client.socket, value.data(), valueSize, 0);
+            recv(client.socket, ok, 3, 0); //block
             totalSize += valueSize;
         }
         //std::cout << "The bytes I sent : " << totalSize << std::endl;
@@ -63,7 +65,7 @@ void *handleConnection(void *pClient){
         }
         else{
          //std::cout << "Unknown method" << std::endl;
-         results = {"Unknown method"};
+         results = {"Unknown query type\n"};
         }
         printResult(client, results);
         memset(msg, 0, BUFFSIZE);

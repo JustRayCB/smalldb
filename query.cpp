@@ -87,7 +87,7 @@ bool findStudent(database_t *database, std::string &field, std::string &value,
     }
 
     if (not correctField) {
-        results.push_back("Problem with the query field");
+        results.push_back("Error: The field is not among {id, lname, section, birthdate}");
         return false;
     }
 
@@ -200,24 +200,27 @@ bool findStudent(database_t *database, std::string &field, std::string &value,
 
     
     }
+    if (results.empty() and (isUpdate or isDelete)) {
+        return false;
+    }
     return true;
 }
 
 std::vector<std::string> select(database_t *database, std::string query){
-    //std::string *results = new std::string();
     std::vector<std::string> results;
     std::string field, value;
-
-    if ( not parse_selectors(query, field, value)){
-        results.push_back("Problem with the query select \n"
-                    "Please enter the arguments correctly \n");
+    int parse;
+    if ((parse = parse_selectors(query, field, value))){
+        results.push_back("------Select------\n");
+        errorParseSelectors(parse, results);
+        results.push_back("------------------\n");
         return results;
     }
     
     bool ret = findStudent(database, field, value, results);
     if (not ret) {
-        results.push_back("Problem with the query select \n"
-                    "There is a problem that was not suppose to happened\n");
+        results.push_back("Error: A problem has occured when doing the"
+                    "query select. Unknown error\n");
         return results;
     }
     results.push_back(std::to_string(results.size())+" student(s) selected" + '\n');
@@ -227,17 +230,23 @@ std::vector<std::string> select(database_t *database, std::string query){
 std::vector<std::string> update(database_t *database, std::string query){
     std::vector<std::string> results;
     std::string fieldFilter, valueFilter, fieldToUpdate, updateValue;
-
-    if (not parse_update(query, fieldFilter, valueFilter, fieldToUpdate, updateValue)) {
-        results.push_back("Problem with the query update \n"
-                    "Please enter the arguments correctly \n");
+    int parse;
+    if ((parse =parse_update(query, fieldFilter, valueFilter, fieldToUpdate, updateValue))) {
+        results.push_back("------Update------\n");
+        errorParseUpdate(parse, results);
+        results.push_back("------------------\n");
         return results;
     }
     
     bool ret = findStudent(database, fieldFilter, valueFilter, results, fieldToUpdate, updateValue);
     if (not ret) {
-        results.push_back("Problem with the query update \n"
-                    "There is a problem that was not suppose to happened\n");
+        if (results.empty()) {
+            results.push_back("Error: There was no such students");
+        }
+        else {
+            results.push_back("Error: A problem has occured when doing the"
+                    "query update\n");
+        }
         return results;
     }
 
@@ -247,9 +256,11 @@ std::vector<std::string> update(database_t *database, std::string query){
 std::vector<std::string> insert(database_t *database, std::string query){
     std::vector<std::string> results;
     std::string fname, lname, id, section, birthdate;
-    if (not parse_insert(query, fname, lname, id, section, birthdate)) {
-        results.push_back("Problem with the query insert \n"
-                    "Please enter the arguments correctly \n");
+    int parse;
+    if ((parse = parse_insert(query, fname, lname, id, section, birthdate))) {
+        results.push_back("------Insert-----\n");
+        errorParseInsert(parse, results);
+        results.push_back("------------------\n");
         return results;
     }
     student_t student;
@@ -260,7 +271,7 @@ std::vector<std::string> insert(database_t *database, std::string query){
     updateStudent(student, "birthdate", birthdate);
     for (auto &currentStudent : database->data) {
         if (currentStudent.id == student.id) {
-            results.push_back("Error id is already in the database\n");
+            results.push_back("Error: id of student is already in the database\n");
             return results;
         }
     }
@@ -273,16 +284,23 @@ std::vector<std::string> insert(database_t *database, std::string query){
 std::vector<std::string> deletion(database_t *database, std::string query){
     std::vector<std::string> results;
     std::string field, value;
-    if (not parse_selectors(query, field, value)) {
-        results.push_back("Problem with the query insert \n"
-                    "Please enter the arguments correctly \n");
+    int parse;
+    if ((parse = parse_selectors(query, field, value))) {
+        results.push_back("------Delete------\n");
+        errorParseSelectors(parse, results);
+        results.push_back("------------------\n");
         return results;
     }
 
     bool ret = findStudent(database, field, value, results, "delete");
     if (not ret) {
-        results.push_back("Problem with the query update \n"
-                    "There is a problem that was not suppose to happened\n");
+        if (results.empty()) {
+            results.push_back("Error: There was no such students");
+        }
+        else {
+            results.push_back("Error: A problem has occured when doing the"
+                    "query delete\n");
+        }
         return results;
     }
 
