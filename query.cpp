@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <iostream>
 #include <pthread.h>
+#include <semaphore.h>
 #include <vector>
 #include <string>
 #include <tuple>
@@ -74,26 +75,26 @@ bool isSearchedStudent(const std::string &field, const std::string &value, const
 }
 
 void firstPartMutexReader(){
-    if (pthread_mutex_lock(&newAccess)!= 0) {
+    if (sem_wait(&newAccess)!= 0) {
         std::cout << "Error while locking the mutex access" << std::endl;
     
     }
-    if (pthread_mutex_lock(&readerAccess)!= 0) {
+    if (sem_wait(&readerAccess)!= 0) {
         std::cout << "Error while locking the mutex reader" << std::endl;
     
     }
     if (readerC == 0) {
-        if (pthread_mutex_lock(&writeAccess)!= 0) {
+        if (sem_wait(&writeAccess)!= 0) {
             std::cout << "Error while locking the mutex reader" << std::endl;
         
         }
     }
     readerC++;
-    if (pthread_mutex_unlock(&newAccess)!= 0) {
+    if (sem_post(&newAccess)!= 0) {
         std::cout << "Error while unlocking the mutex access" << std::endl;
 
     }
-    if (pthread_mutex_unlock(&readerAccess)!= 0) {
+    if (sem_post(&readerAccess)!= 0) {
         std::cout << "Error while unlocking the mutex reader" << std::endl;
 
     }
@@ -101,18 +102,18 @@ void firstPartMutexReader(){
 }
 
 void secondPartMutexReader(){
-    if (pthread_mutex_lock(&readerAccess)!= 0) {
+    if (sem_wait(&readerAccess)!= 0) {
         std::cout << "Error while locking the mutex reader" << std::endl;
 
     }
     readerC--;
     if (readerC == 0) {
-        if (pthread_mutex_unlock(&writeAccess)!= 0) {
+        if (sem_post(&writeAccess)!= 0) {
             std::cout << "Error while unlocking the mutex reader" << std::endl;
 
         }
     }
-    if (pthread_mutex_unlock(&readerAccess)!= 0) {
+    if (sem_post(&readerAccess)!= 0) {
         std::cout << "Error while unlocking the mutex reader" << std::endl;
 
     }
@@ -120,23 +121,23 @@ void secondPartMutexReader(){
 }
 
 void firstPartMutexWriter(){
-    if (pthread_mutex_lock(&newAccess)!= 0) {
+    if (sem_wait(&newAccess)!= 0) {
         std::cout << "Error while locking the mutex access" << std::endl;
 
     }
-    if (pthread_mutex_lock(&writeAccess)!= 0) {
+    if (sem_wait(&writeAccess)!= 0) {
         std::cout << "Error while locking the mutex reader" << std::endl;
 
     }
 
-    if (pthread_mutex_unlock(&newAccess)!= 0) {
+    if (sem_post(&newAccess)!= 0) {
         std::cout << "Error while unlocking the mutex access" << std::endl;
 
     }
 }
 
 void secondPartMutexWriter(){
-    if (pthread_mutex_unlock(&writeAccess)!= 0) {
+    if (sem_post(&writeAccess)!= 0) {
         std::cout << "Error while unlocking the mutex reader" << std::endl;
     }
 }

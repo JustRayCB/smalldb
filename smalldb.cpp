@@ -2,6 +2,7 @@
 #include <asm-generic/socket.h>
 #include <cstddef>
 #include <cstring>
+#include <semaphore.h>
 #include <string>
 #include <sys/select.h>
 #include <vector>
@@ -25,9 +26,9 @@
 #define BUFFSIZE (200)
 
 int sigint = 1;
-pthread_mutex_t newAccess;
-pthread_mutex_t writeAccess;
-pthread_mutex_t readerAccess;
+ sem_t newAccess;
+sem_t writeAccess;
+sem_t readerAccess;
 int readerC;
 
 void signalHandler(int signum) {
@@ -44,9 +45,12 @@ void signalHandler(int signum) {
 
 
 int main(int argc, const char* argv[]) {
-    newAccess = PTHREAD_MUTEX_INITIALIZER;
-    writeAccess = PTHREAD_MUTEX_INITIALIZER;
-    readerAccess = PTHREAD_MUTEX_INITIALIZER;
+    //newAccess = PTHREAD_MUTEX_INITIALIZER;
+    //writeAccess = PTHREAD_MUTEX_INITIALIZER;
+    //readerAccess = PTHREAD_MUTEX_INITIALIZER;
+    sem_init(&newAccess, 0, 1);
+    sem_init(&writeAccess, 0, 1);
+    sem_init(&readerAccess, 0, 1);
     readerC = 0;
     std::cout << "Hello, I'm the server " << PORT <<  std::endl;
 
