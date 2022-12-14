@@ -97,8 +97,8 @@ int main(int argc, const char* argv[]) {
         }
         else {
             //Bloque le signal pour le thread courant
-            //printf("server: got connection from %s port %d\n",
-            //inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port));
+            printf("server: got connection from %s port %d\n",
+            inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port));
             sigset_t mask;
             sigemptyset(&mask);
             sigaddset(&mask, SIGUSR1);

@@ -73,6 +73,74 @@ bool isSearchedStudent(const std::string &field, const std::string &value, const
     return false;
 }
 
+void firstPartMutexReader(){
+    if (pthread_mutex_lock(&newAccess)!= 0) {
+        std::cout << "Error while locking the mutex access" << std::endl;
+    
+    }
+    if (pthread_mutex_lock(&readerAccess)!= 0) {
+        std::cout << "Error while locking the mutex reader" << std::endl;
+    
+    }
+    if (readerC == 0) {
+        if (pthread_mutex_lock(&writeAccess)!= 0) {
+            std::cout << "Error while locking the mutex reader" << std::endl;
+        
+        }
+    }
+    readerC++;
+    if (pthread_mutex_unlock(&newAccess)!= 0) {
+        std::cout << "Error while unlocking the mutex access" << std::endl;
+
+    }
+    if (pthread_mutex_unlock(&readerAccess)!= 0) {
+        std::cout << "Error while unlocking the mutex reader" << std::endl;
+
+    }
+
+}
+
+void secondPartMutexReader(){
+    if (pthread_mutex_lock(&readerAccess)!= 0) {
+        std::cout << "Error while locking the mutex reader" << std::endl;
+
+    }
+    readerC--;
+    if (readerC == 0) {
+        if (pthread_mutex_unlock(&writeAccess)!= 0) {
+            std::cout << "Error while unlocking the mutex reader" << std::endl;
+
+        }
+    }
+    if (pthread_mutex_unlock(&readerAccess)!= 0) {
+        std::cout << "Error while unlocking the mutex reader" << std::endl;
+
+    }
+
+}
+
+void firstPartMutexWriter(){
+    if (pthread_mutex_lock(&newAccess)!= 0) {
+        std::cout << "Error while locking the mutex access" << std::endl;
+
+    }
+    if (pthread_mutex_lock(&writeAccess)!= 0) {
+        std::cout << "Error while locking the mutex reader" << std::endl;
+
+    }
+
+    if (pthread_mutex_unlock(&newAccess)!= 0) {
+        std::cout << "Error while unlocking the mutex access" << std::endl;
+
+    }
+}
+
+void secondPartMutexWriter(){
+    if (pthread_mutex_unlock(&writeAccess)!= 0) {
+        std::cout << "Error while unlocking the mutex reader" << std::endl;
+    }
+}
+
 bool findStudent(database_t *database, std::string &field, std::string &value, 
         std::vector<std::string> &results,
         const std::string &fieldToUpdate, const std::string &updateValue){
@@ -102,98 +170,21 @@ bool findStudent(database_t *database, std::string &field, std::string &value,
     size_t sizeVector = database->data.size();
 
     while (idx < sizeVector) {
-
-
-        if (pthread_mutex_lock(&newAccess)!= 0) {
-            std::cout << "Error while locking the mutex access" << std::endl;
-        
-        }
-        if (pthread_mutex_lock(&readerAccess)!= 0) {
-            std::cout << "Error while locking the mutex reader" << std::endl;
-        
-        }
-        if (readerC == 0) {
-            if (pthread_mutex_lock(&writeAccess)!= 0) {
-                std::cout << "Error while locking the mutex reader" << std::endl;
-            
-            }
-        }
-        readerC++;
-        if (pthread_mutex_unlock(&newAccess)!= 0) {
-            std::cout << "Error while unlocking the mutex access" << std::endl;
-
-        }
-        if (pthread_mutex_unlock(&readerAccess)!= 0) {
-            std::cout << "Error while unlocking the mutex reader" << std::endl;
-
-        }
-
         auto &student = database->data[idx];
         bool res = isSearchedStudent(field, value, student);
-        if (pthread_mutex_lock(&readerAccess)!= 0) {
-            std::cout << "Error while locking the mutex reader" << std::endl;
-
-        }
-        readerC--;
-        if (readerC == 0) {
-            if (pthread_mutex_unlock(&writeAccess)!= 0) {
-                std::cout << "Error while unlocking the mutex reader" << std::endl;
-
-            }
-        }
-        if (pthread_mutex_unlock(&readerAccess)!= 0) {
-            std::cout << "Error while unlocking the mutex reader" << std::endl;
-
-        }
-
         if (res) {
             if (isUpdate) {
-                if (pthread_mutex_lock(&newAccess)!= 0) {
-                    std::cout << "Error while locking the mutex access" << std::endl;
-
-                }
-                if (pthread_mutex_lock(&writeAccess)!= 0) {
-                    std::cout << "Error while locking the mutex reader" << std::endl;
-
-                }
-
-                if (pthread_mutex_unlock(&newAccess)!= 0) {
-                    std::cout << "Error while unlocking the mutex access" << std::endl;
-
-                }
                 updateStudent(student, fieldToUpdate, updateValue);
                 results.push_back(student_to_str(student));
-                if (pthread_mutex_unlock(&writeAccess)!= 0) {
-                    std::cout << "Error while unlocking the mutex reader" << std::endl;
-                }
-
-
             }
             else if (not isUpdate and not isDelete) {
                 results.push_back(student_to_str(student));
             }
             else {
                 results.push_back(student_to_str(student));
-                                if (pthread_mutex_lock(&newAccess)!= 0) {
-                    std::cout << "Error while locking the mutex access" << std::endl;
-
-                }
-                if (pthread_mutex_lock(&writeAccess)!= 0) {
-                    std::cout << "Error while locking the mutex reader" << std::endl;
-
-                }
-
-                if (pthread_mutex_unlock(&newAccess)!= 0) {
-                    std::cout << "Error while unlocking the mutex access" << std::endl;
-
-                }
                 database->data.erase(database->data.begin()+idx);
                 sizeVector--;
                 idx--;
-                if (pthread_mutex_unlock(&writeAccess)!= 0) {
-                    std::cout << "Error while unlocking the mutex reader" << std::endl;
-                }
-
             }
         }
         idx++;
@@ -217,7 +208,9 @@ std::vector<std::string> select(database_t *database, std::string query){
         return results;
     }
     
+    firstPartMutexReader();
     bool ret = findStudent(database, field, value, results);
+    secondPartMutexReader();
     if (not ret) {
         results.push_back("Error: A problem has occured when doing the"
                     "query select. Unknown error\n");
@@ -237,8 +230,9 @@ std::vector<std::string> update(database_t *database, std::string query){
         results.push_back("------------------\n");
         return results;
     }
-    
+    firstPartMutexWriter();
     bool ret = findStudent(database, fieldFilter, valueFilter, results, fieldToUpdate, updateValue);
+    secondPartMutexWriter();
     if (not ret) {
         if (results.empty()) {
             results.push_back("Error: There was no such students");
@@ -269,14 +263,18 @@ std::vector<std::string> insert(database_t *database, std::string query){
     updateStudent(student, "id", id);
     updateStudent(student, "section", section);
     updateStudent(student, "birthdate", birthdate);
-    for (auto &currentStudent : database->data) {
-        if (currentStudent.id == student.id) {
-            results.push_back("Error: id of student is already in the database\n");
-            return results;
-        }
+    firstPartMutexReader();
+    std::string field = "id";
+    findStudent(database, field, id, results);
+    if (not results.empty()) {
+        results.push_back("Error: id of student is already in the database\n");
+        return results;
     }
+    secondPartMutexReader();
     results.push_back(student_to_str(student));
+    firstPartMutexWriter();
     db_add(database, student);
+    secondPartMutexWriter();
     return results;
 
 }
@@ -292,7 +290,9 @@ std::vector<std::string> deletion(database_t *database, std::string query){
         return results;
     }
 
+    firstPartMutexWriter();
     bool ret = findStudent(database, field, value, results, "delete");
+    secondPartMutexWriter();
     if (not ret) {
         if (results.empty()) {
             results.push_back("Error: There was no such students");
