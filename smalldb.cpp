@@ -1,5 +1,4 @@
 #include <arpa/inet.h>
-#include <asm-generic/socket.h>
 #include <cstddef>
 #include <cstring>
 #include <semaphore.h>
@@ -26,7 +25,7 @@
 #define BUFFSIZE (200)
 
 int sigint = 1;
- sem_t newAccess;
+sem_t newAccess;
 sem_t writeAccess;
 sem_t readerAccess;
 int readerC;
@@ -43,17 +42,25 @@ void signalHandler(int signum) {
 }
 
 
+void configSocket(int &serverSocket, struct sockaddr_in &address){
+    //struct sockaddr_in address, clientAddress;
+    serverSocket = check(socket(AF_INET, SOCK_STREAM, 0), "Serv: failed to create socket");
+    int opt=1;
+    check(setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)),
+                "Set option failed");
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons(PORT);
+    check(bind(serverSocket, (struct sockaddr *)&address, sizeof(address)), "Bind failed !");
+    check(listen(serverSocket, 10), "Listen failed !");
+    
+}
 
 int main(int argc, const char* argv[]) {
-    //newAccess = PTHREAD_MUTEX_INITIALIZER;
-    //writeAccess = PTHREAD_MUTEX_INITIALIZER;
-    //readerAccess = PTHREAD_MUTEX_INITIALIZER;
     sem_init(&newAccess, 0, 1);
     sem_init(&writeAccess, 0, 1);
     sem_init(&readerAccess, 0, 1);
     readerC = 0;
-    std::cout << "Hello, I'm the server " << PORT <<  std::endl;
-
     std::cout << "Loading the Db" << std::endl;
     database_t *db = new database_t();
     db_load(db, argv[argc-1]);
@@ -66,23 +73,12 @@ int main(int argc, const char* argv[]) {
     sigaction(SIGINT, &action, NULL);
 
 
-    int serverSocket = check(socket(AF_INET, SOCK_STREAM, 0), "Serv: failed to create socket");
-    int clientSocket =1;
-    int opt =1;
-    check(setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)),
-                "Set option failed");
     struct sockaddr_in address, clientAddress;
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(PORT);
-    //inet_pton(AF_INET, "173.2.0.1", &address.sin_addr);
+    int serverSocket; int clientSocket;
+    configSocket(serverSocket, address);
 
-    check(bind(serverSocket, (struct sockaddr *)&address, sizeof(address)), "Bind failed !");
-    check(listen(serverSocket, 10), "Listen failed !");
     size_t addrlenf = sizeof(clientAddress);
-    std::vector<pthread_t*> threads;
-    std::vector<int> sockets;
-    //cout la size et prendre à chaque fois le dernier thread
+    std::vector<pthread_t*> threads; std::vector<int> sockets;
     while (sigint) {
         if (sigint == 2) {
                 std::cout << "Saving the database" << std::endl;
@@ -118,6 +114,9 @@ int main(int argc, const char* argv[]) {
         }
 
     }
+    std::cout << "The server is closing" << std::endl;
+    close(serverSocket);
+    std::cout << "closed" << std::endl;
     if(system("/bin/bash -c ./killClient")){
         std::cout << "Problem when killing client ! " << std::endl;
     }
@@ -129,12 +128,9 @@ int main(int argc, const char* argv[]) {
     for (auto &socket : sockets) {
         close(socket);
     }
-    std::cout << "Saving the database before closing" << std::endl;
+    std::cout << "Saving the database before closing the program" << std::endl;
     db_save(db);
     delete db;
     db = nullptr;
-    std::cout << "The server is closing" << std::endl;
-    close(serverSocket);
-    std::cout << "closed" << std::endl;
     return 0;
 }
