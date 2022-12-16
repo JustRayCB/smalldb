@@ -4,3 +4,4 @@ sdbsh
 smalldb
 sdbsh.dSYM
 smalldb.dSYM
+*.bin
