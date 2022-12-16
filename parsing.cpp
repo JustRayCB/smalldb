@@ -22,6 +22,9 @@ void errorParseUpdate(int returnValue, std::vector<std::string> &results){
                 "--> update <Filter>=<value> set <Filter we want to update>=<Value to update>\n");
     }
     else {
+        results.push_back("Error: Some fields are missings\n"
+                "Make sure you used the correct format\n"
+                "--> update <Filter>=<value> set <Filter we want to update>=<Value to update>\n");
         errorParseSelectors(returnValue, results);
     }
 
@@ -150,10 +153,8 @@ int parse_selectors(string &query, string &field, string &value){
         try {
         tmp = (unsigned)stoi(value);
         } catch (const invalid_argument& ia) {
-            //std::cerr << "Invalid argument: " << ia.what() << std::endl;
             return 2;
         } catch (const exception& e){
-            //std::cerr << "Unknown error : " << e.what() << std::endl;
             return 3;
         }tmp++; // Just not to have the W-Unused warning
    }

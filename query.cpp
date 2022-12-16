@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <unistd.h>
 #include <cstddef>
 #include <iostream>
 #include <pthread.h>
@@ -143,37 +144,22 @@ void secondPartMutexWriter(){
 }
 
 bool findStudent(database_t *database, std::string &field, std::string &value, 
-        std::vector<std::string> &results,
-        const std::string &fieldToUpdate, const std::string &updateValue){
-    bool correctField = false;
-    bool isUpdate = false, isDelete = false;
+        std::vector<std::string> &results, const std::string &fieldToUpdate,
+        const std::string &updateValue){
+    bool correctField = false; bool isUpdate = false, isDelete = false;
     for (auto &allFields : {"id", "fname", "lname", "section", "birthdate"}) {
-        if (field == allFields) {
-            correctField = true;
-            break;
-        }
-    
+        if (field == allFields) {correctField = true;break;}
     }
-
     if (not correctField) {
         results.push_back("Error: The field is not among {id, lname, section, birthdate}");
         return false;
     }
-
-    if (fieldToUpdate != "" and fieldToUpdate != "delete") {
-        isUpdate = true;
-    }
-    if (fieldToUpdate == "delete") {
-        isDelete = true;
-
-    }
-    size_t idx = 0;
-    size_t sizeVector = database->data.size();
-
+    if (fieldToUpdate != "" and fieldToUpdate != "delete") {isUpdate = true;}
+    if (fieldToUpdate == "delete") {isDelete = true;}
+    size_t idx = 0; size_t sizeVector = database->data.size();
     while (idx < sizeVector) {
         auto &student = database->data[idx];
-        bool res = isSearchedStudent(field, value, student);
-        if (res) {
+        if (isSearchedStudent(field, value, student)) {
             if (isUpdate) {
                 updateStudent(student, fieldToUpdate, updateValue);
                 results.push_back(student_to_str(student));
@@ -187,10 +173,7 @@ bool findStudent(database_t *database, std::string &field, std::string &value,
                 sizeVector--;
                 idx--;
             }
-        }
-        idx++;
-
-    
+        }idx++;
     }
     if (results.empty() and (isUpdate or isDelete)) {
         return false;
@@ -201,8 +184,8 @@ bool findStudent(database_t *database, std::string &field, std::string &value,
 std::vector<std::string> select(database_t *database, std::string query){
     std::vector<std::string> results;
     std::string field, value;
-    int parse;
-    if ((parse = parse_selectors(query, field, value))){
+    int parse = parse_selectors(query, field, value);
+    if (parse){
         results.push_back("------Select------\n");
         errorParseSelectors(parse, results);
         results.push_back("------------------\n");
@@ -224,8 +207,8 @@ std::vector<std::string> select(database_t *database, std::string query){
 std::vector<std::string> update(database_t *database, std::string query){
     std::vector<std::string> results;
     std::string fieldFilter, valueFilter, fieldToUpdate, updateValue;
-    int parse;
-    if ((parse =parse_update(query, fieldFilter, valueFilter, fieldToUpdate, updateValue))) {
+    int parse = parse_update(query, fieldFilter, valueFilter, fieldToUpdate, updateValue);
+    if (parse) {
         results.push_back("------Update------\n");
         errorParseUpdate(parse, results);
         results.push_back("------------------\n");
@@ -250,22 +233,19 @@ std::vector<std::string> update(database_t *database, std::string query){
 
 std::vector<std::string> insert(database_t *database, std::string query){
     std::vector<std::string> results;
-    std::string fname, lname, id, section, birthdate;
-    int parse;
-    if ((parse = parse_insert(query, fname, lname, id, section, birthdate))) {
+    std::string fname, lname, id, section, birthdate, field="id";
+    int parse = parse_insert(query, fname, lname, id, section, birthdate);
+    if (parse) {
         results.push_back("------Insert-----\n");
         errorParseInsert(parse, results);
         results.push_back("------------------\n");
         return results;
     }
     student_t student;
-    updateStudent(student, "fname", fname);
-    updateStudent(student, "lname", lname);
-    updateStudent(student, "id", id);
-    updateStudent(student, "section", section);
+    updateStudent(student, "fname", fname); updateStudent(student, "lname", lname);
+    updateStudent(student, "id", id); updateStudent(student, "section", section);
     updateStudent(student, "birthdate", birthdate);
     firstPartMutexReader();
-    std::string field = "id";
     findStudent(database, field, id, results);
     if (not results.empty()) {
         results.push_back("Error: id of student is already in the database\n");
@@ -283,8 +263,8 @@ std::vector<std::string> insert(database_t *database, std::string query){
 std::vector<std::string> deletion(database_t *database, std::string query){
     std::vector<std::string> results;
     std::string field, value;
-    int parse;
-    if ((parse = parse_selectors(query, field, value))) {
+    int parse = parse_selectors(query, field, value);
+    if (parse) {
         results.push_back("------Delete------\n");
         errorParseSelectors(parse, results);
         results.push_back("------------------\n");
@@ -296,7 +276,7 @@ std::vector<std::string> deletion(database_t *database, std::string query){
     secondPartMutexWriter();
     if (not ret) {
         if (results.empty()) {
-            results.push_back("Error: There was no such students");
+            results.push_back("Error: There was no such students\n");
         }
         else {
             results.push_back("Error: A problem has occured when doing the"
@@ -305,5 +285,5 @@ std::vector<std::string> deletion(database_t *database, std::string query){
         return results;
     }
 
-    return {std::to_string(results.size())+" student(s) deleted" + '\n'};
+    return {std::to_string(results.size())+" student(s) deleted\n"};
 }

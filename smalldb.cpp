@@ -19,11 +19,6 @@
 #include "db.hpp"
 #include "common.hpp"
 
-#define PORT (28772)
-#define SOCKETERROR (-1)
-#define THREAD_POOL_SIZE (20)
-#define BUFFSIZE (200)
-
 int sigint = 1;
 sem_t newAccess;
 sem_t writeAccess;
@@ -56,11 +51,46 @@ void configSocket(int &serverSocket, struct sockaddr_in &address){
     
 }
 
+void handleNewThread(int &clientSocket, std::vector<pthread_t*> &allThreads,
+        std::vector<int> &allClients, database_t *db){
+    sigset_t mask;
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGUSR1); sigaddset(&mask, SIGINT);
+    sigprocmask(SIG_BLOCK, &mask, NULL);
+    Client *pClient = new Client({clientSocket, db});
+    std::cout << "Client (" << clientSocket <<") connected" << std::endl;
+    pthread_t *thread = new pthread_t();
+    pthread_create(thread, nullptr, handleConnection, pClient);
+    allThreads.push_back(thread);
+    allClients.push_back(clientSocket);
+    sigprocmask(SIG_UNBLOCK, &mask, NULL);
+
+}
+
+void terminateServerAndClient(int &serverSocket, std::vector<pthread_t*> allThreads, std::vector<int> allClients){
+    std::cout << "The server is closing" << std::endl;
+    close(serverSocket);
+    std::cout << "closed" << std::endl;
+    if(system("/bin/bash -c ./killClient")){
+        std::cout << "Problem when killing client ! " << std::endl;
+    }
+    for (auto &current : allThreads) {
+        pthread_cancel(*current);
+        pthread_join(*current, nullptr);
+        delete current;
+    }
+    for (auto &socket : allClients) {
+        close(socket);
+    }
+}
+
+
 int main(int argc, const char* argv[]) {
     sem_init(&newAccess, 0, 1);
     sem_init(&writeAccess, 0, 1);
     sem_init(&readerAccess, 0, 1);
     readerC = 0;
+
     std::cout << "Loading the Db" << std::endl;
     database_t *db = new database_t();
     db_load(db, argv[argc-1]);
@@ -69,8 +99,7 @@ int main(int argc, const char* argv[]) {
     action.sa_handler = signalHandler;
     sigemptyset(&action.sa_mask);
     action.sa_flags = 0;
-    sigaction(SIGUSR1, &action, NULL);
-    sigaction(SIGINT, &action, NULL);
+    sigaction(SIGUSR1, &action, NULL); sigaction(SIGINT, &action, NULL);
 
 
     struct sockaddr_in address, clientAddress;
@@ -78,59 +107,22 @@ int main(int argc, const char* argv[]) {
     configSocket(serverSocket, address);
 
     size_t addrlenf = sizeof(clientAddress);
-    std::vector<pthread_t*> threads; std::vector<int> sockets;
+    std::vector<pthread_t*> allThreads; std::vector<int> allClients;
     while (sigint) {
         if (sigint == 2) {
-                std::cout << "Saving the database" << std::endl;
-                db_save(db);
-                sigint = 1;
+                db_save(db); sigint = 1;
         }
         std::cout << "Waiting for connections ... " << std::endl;
         clientSocket = accept(serverSocket, (struct sockaddr *)&clientAddress,
                     (socklen_t *)&addrlenf);
-
-        if (clientSocket < 0) {
-            if (errno == EINTR) {
-                std::cout << "Catch SIGNAL" << std::endl;
-                continue;
-            }
-        }
-        else {
-            //Bloque le signal pour le thread courant
-            printf("server: got connection from %s port %d\n",
-            inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port));
-            sigset_t mask;
-            sigemptyset(&mask);
-            sigaddset(&mask, SIGUSR1);
-            sigaddset(&mask, SIGINT);
-            sigprocmask(SIG_BLOCK, &mask, NULL);
-            Client *pClient = new Client({clientSocket, db});
-            std::cout << "Client (" << clientSocket <<") connected" << std::endl;
-            pthread_t *thread = new pthread_t();
-            pthread_create(thread, nullptr, handleConnection, pClient);
-            threads.push_back(thread);
-            sockets.push_back(clientSocket);
-            sigprocmask(SIG_UNBLOCK, &mask, NULL);
+        if (clientSocket > 0) {
+            handleNewThread(clientSocket, allThreads, allClients, db);
         }
 
     }
-    std::cout << "The server is closing" << std::endl;
-    close(serverSocket);
-    std::cout << "closed" << std::endl;
-    if(system("/bin/bash -c ./killClient")){
-        std::cout << "Problem when killing client ! " << std::endl;
-    }
-    for (auto &current : threads) {
-        pthread_cancel(*current);
-        pthread_join(*current, nullptr);
-        delete current;
-    }
-    for (auto &socket : sockets) {
-        close(socket);
-    }
+    terminateServerAndClient(serverSocket, allThreads, allClients);
+    
     std::cout << "Saving the database before closing the program" << std::endl;
-    db_save(db);
-    delete db;
-    db = nullptr;
+    db_save(db); delete db; db = nullptr;
     return 0;
 }

@@ -4,6 +4,7 @@
 #include <fcntl.h>     // open
 #include <sys/stat.h>  // stat
 #include <unistd.h>    // read
+#include <iostream>
 
 #include <algorithm>  // std::min
 #include <cassert>    // assert
@@ -92,6 +93,7 @@ size_t db_delete(database_t *db, student_t *s) {
 }
 
 void db_save(database_t *db) {
+    std::cout << "Saving the database" << std::endl;
     int fd_db = open(db->path, O_WRONLY | O_CREAT | O_TRUNC, 0640);
     if (fd_db < 0) {
         err(FILE_ERROR, "Unable to open %s (saving DB)", db->path);
