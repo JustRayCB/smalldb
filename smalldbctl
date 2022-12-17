@@ -4,22 +4,25 @@ err(){
     echo -e "\e[1;31mE: $* \e[0m" >> /dev/stderr
 }
 
+right(){
+    echo -e "\e[32m$*"
+}
+
 TO_LAUNCH=$1
 USAGE="monitoring list|stop|sync|"
 PID=$(pidof smalldb)
 
 if [[ $TO_LAUNCH == "sync" ]]; then
     kill -SIGUSR1 $PID
-    echo "Done"
+    right "Done"
 
 elif [[ $TO_LAUNCH == "stop" ]]; then
     kill -SIGINT $PID
-    echo "Done"
+    right "Done"
 
 elif [[ $TO_LAUNCH == "list" ]]; then
-    #ss --no-header -Ontp4 'sport = :28772' | awk '{print $4;}'
     ss --no-header -Ontp4 'sport = :28772' | awk '{split($5, a, ":"); print a[1]}'
-    echo "Done"
+    right "Done"
 else 
     err "$USAGE"
 fi
