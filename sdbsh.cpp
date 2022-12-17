@@ -1,3 +1,6 @@
+#include <asm-generic/errno-base.h>
+#include <cerrno>
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -30,19 +33,57 @@ void signalHandler(int signum) {
     }
 }
 
-void printResult(int &server){
+
+template<class typeValue>
+int checkRecv(int &server, typeValue *results, unsigned long &&size){
+    int bytesRead = recv(server, results, size, 0);
+    if (bytesRead == -1) {
+        std::cout << "Unknown error has occured while receiving data" << std::endl;
+        return 1;
+    }else if (bytesRead == 0) {
+        std::cout << "The server is not available anymore or you have been disconnected "
+            "due to innactivity can not receive data" << std::endl;
+        return 1;
+    }
+    return 0;
+}
+int checkSend(int &server, std::string &results){
+    int bytesSent = send(server, results.data(), results.size()+1, 0);
+    if (bytesSent < 0) {
+        if (errno == EPIPE) {
+            //server disconnected
+            std::cout << "The server is disconnected or you have been disconnected"
+                " due to innactivity can not send data" << std::endl;
+            return 1;
+        }else {
+            std::cout << "Unknown error while sending data" << std::endl;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int printResult(int &server){
     int size;
-    recv(server, &size, sizeof(size), 0);
+    std::string ok = "ok";
+    if(checkRecv(server, &size, sizeof(size))){
+        return 1;
+    }
     size = ntohs(size);
     char *results = new char[size];
-    recv(server, results, size, 0);
-    send(server, "ok\0", 3, 0);
-    //results[size-1] = '\0';
+    if(checkRecv(server, results, size)){
+        return 1;
+    }
+    if (checkSend(server, ok)) {
+        return 1;
+    }
     std::cout << results;
     delete [] results;
     results = nullptr;
+    return 0;
 
 }
+
 
 int main(int argc, const char* argv[]){
     if (argc <2) {
@@ -67,14 +108,18 @@ int main(int argc, const char* argv[]){
     while (std::getline(std::cin, msg) and sigint){
         if (msg != "") {
             msg += '\0';
-            send(server, msg.c_str(), msg.size(), 0);
-            recv(server, &valueSize, sizeof(valueSize), 0);
+            if(checkSend(server, msg)){
+                break;
+            }
+            if(checkRecv(server, &valueSize, sizeof(valueSize))){
+                break;
+            }
             valueSize = ntohl(valueSize);
             for (int idx=0; idx < valueSize; idx++) {
-                printResult(server);
+                if (not sigint) {break;}
+                if (printResult(server)){break;}
             }
         }
-      
     }
     close(server);
     return 0;

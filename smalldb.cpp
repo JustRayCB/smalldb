@@ -36,9 +36,10 @@ void signalHandler(int signum) {
     }
 }
 
-
+/*
+ * @brief: Function that will config the server socket
+ */
 void configSocket(int &serverSocket, struct sockaddr_in &address){
-    //struct sockaddr_in address, clientAddress;
     serverSocket = check(socket(AF_INET, SOCK_STREAM, 0), "Serv: failed to create socket");
     int opt=1;
     check(setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)),
@@ -51,6 +52,9 @@ void configSocket(int &serverSocket, struct sockaddr_in &address){
     
 }
 
+/*@brief: Function that will manage signals for new created threads
+ * and stock it to a vector same for the client socket
+ */
 void handleNewThread(int &clientSocket, std::vector<pthread_t*> &allThreads,
         std::vector<int> &allClients, database_t *db){
     sigset_t mask;
@@ -67,11 +71,15 @@ void handleNewThread(int &clientSocket, std::vector<pthread_t*> &allThreads,
 
 }
 
+/*
+ * @brief Function that kill all client and wait for their thread to finish then
+ * close all sockets
+ */
 void terminateServerAndClient(int &serverSocket, std::vector<pthread_t*> allThreads, std::vector<int> allClients){
     std::cout << "The server is closing" << std::endl;
     close(serverSocket);
     std::cout << "closed" << std::endl;
-    if(system("/bin/bash -c ./killClient")){
+    if(system("/bin/bash -c ./killClient")){ //Call a bash program that send SIGINT to all client to close them correctly
         std::cout << "Problem when killing client ! " << std::endl;
     }
     for (auto &current : allThreads) {

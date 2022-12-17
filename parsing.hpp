@@ -10,15 +10,9 @@
 
 #include "student.hpp"
 
-/*
- * parsing.hpp file for the program tinyDb
- * Groupe: Callens Hugo:000513303, Contuliano Bravo Rayan:000537050, Zaleski Arkadiusz:000516050 
- */
 
 
-
-
-/** 
+/**
  * Parse the arguments of an update query.
  * Example:
  * ```
@@ -30,6 +24,13 @@
  **/
 int parse_update(std::string &query, std::string& field_filter, std::string &value_filter, std::string& field_to_update,
         std::string &update_value);
+/*
+ * @brief: display the correct message according to the error type in the
+ * update command
+ *
+ * @param returnvalue: integer that will define the type of the error
+ * @param: results: vector that will contains the string to display on the client
+ */
 void errorParseUpdate(int returnValue, std::vector<std::string> &results);
 
 /**
@@ -43,12 +44,26 @@ void errorParseUpdate(int returnValue, std::vector<std::string> &results);
  * @return: true if the parsing was successful, false otherwise
  **/
 int parse_insert(std::string& query_arguments, std::string& fname, std::string& lname, std::string& id, std::string& section, std::string& birthdate);
+/*
+ * @brief: display the correct message according to the error type in the
+ * insert command
+ *
+ * @param returnvalue: integer that will define the type of the error
+ * @param: results: vector that will contains the string to display on the client
+ */
 void errorParseInsert(int returnValue, std::vector<std::string> &results);
 
 /** 
  * Parse field=value selectors.
  **/
 int parse_selectors(std::string &query, std::string &field, std::string &value);
+/*
+ * @brief: display the correct message according to the error type in the
+ * select command
+ *
+ * @param returnvalue: integer that will define the type of the error
+ * @param: results: vector that will contains the string to display on the client
+ */
 void errorParseSelectors(int returnValue, std::vector<std::string> &results);
 
 /*

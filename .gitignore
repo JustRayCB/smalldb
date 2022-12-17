@@ -5,3 +5,4 @@ smalldb
 sdbsh.dSYM
 smalldb.dSYM
 *.bin
+/tests/data/*.txt

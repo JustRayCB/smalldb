@@ -22,8 +22,7 @@ void errorParseUpdate(int returnValue, std::vector<std::string> &results){
                 "--> update <Filter>=<value> set <Filter we want to update>=<Value to update>\n");
     }
     else {
-        results.push_back("Error: Some fields are missings\n"
-                "Make sure you used the correct format\n"
+        results.push_back("Make sure you used the correct format\n"
                 "--> update <Filter>=<value> set <Filter we want to update>=<Value to update>\n");
         errorParseSelectors(returnValue, results);
     }

@@ -46,13 +46,11 @@ bool isSearchedStudent(const std::string &field, const std::string &value, const
             return true;
         }
     }
-
     else if (field == "lname") {
         if (student.lname == value) {
             return true;
         }
     }
-
     else if (field == "section") {
         if (student.section == value) {
             return true;
@@ -71,7 +69,6 @@ bool isSearchedStudent(const std::string &field, const std::string &value, const
             return false;
         }
     }
-
     return false;
 }
 
@@ -87,7 +84,6 @@ void firstPartMutexReader(){
     if (readerC == 0) {
         if (sem_wait(&writeAccess)!= 0) {
             std::cout << "Error while locking the mutex reader" << std::endl;
-        
         }
     }
     readerC++;
@@ -185,7 +181,7 @@ std::vector<std::string> select(database_t *database, std::string query){
     std::vector<std::string> results;
     std::string field, value;
     int parse = parse_selectors(query, field, value);
-    if (parse){
+    if (parse){ // If there was errors with the query
         results.push_back("------Select------\n");
         errorParseSelectors(parse, results);
         results.push_back("------------------\n");
@@ -247,7 +243,7 @@ std::vector<std::string> insert(database_t *database, std::string query){
     updateStudent(student, "birthdate", birthdate);
     firstPartMutexReader();
     findStudent(database, field, id, results);
-    if (not results.empty()) {
+    if (not results.empty()) { //find student found a student with the same id
         results.push_back("Error: id of student is already in the database\n");
         return results;
     }

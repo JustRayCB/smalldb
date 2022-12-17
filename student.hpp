@@ -20,25 +20,11 @@ struct student_t {
 /**
  * Convert a student to a human-readlable string.
  **/
-void student_to_str(char* buffer, const student_t* s, size_t buffer_size);
-
 std::string student_to_str(const student_t &s);
 
 /**
  * Return whether two students are equal or not.
  **/
 bool student_equals(const student_t* s1, const student_t* s2);
-
-// Helper functions //////////////////////////////////////////////////////////
-
-/** Return a pointer to a unary function that return true if the given student
- * match the filter field=value.
- */
-std::function<bool(const student_t&)> get_filter(const char* const field, const char* const value);
-
-/** Return a pointer to a unary function that apply field=value to the given
- * student.
- */
-std::function<void(student_t&)> get_updater(const char* const field, const char* const value);
 
 #endif  // _STUDENT_HPP
