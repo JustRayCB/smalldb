@@ -19,6 +19,11 @@
 #include "db.hpp"
 #include "common.hpp"
 
+/*
+ * Main file for the server side
+ * Groupe: Contuliano Bravo Rayan:000537050, Callens Hugo:000513303, Zaleski Arkadiusz:000516050
+ */
+
 int sigint = 1;
 sem_t newAccess;
 sem_t writeAccess;
